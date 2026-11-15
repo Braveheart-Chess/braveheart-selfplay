@@ -628,6 +628,33 @@ It printed no error. Its start and end times were not recorded. The old bucket
 was not changed and is kept until the owner deletes it. The audit of the copy
 is in the [audit log](#audit-log), under 2026-11-15.
 
+The workflows moved to the new bucket and the new remote-task project
+(`braveheart`, from `rusty-chess`) with `v0.54.0` (#267). Two runs from `main`
+at `v0.54.0` (`3fd0223`) then checked the task runner, both on 2026-11-15:
+
+| Run | Instance | Result |
+|:--|:--|:--|
+| `GPU smoke` [43763493287](https://github.com/Braveheart-Chess/braveheart/actions/runs/43763493287) | on-demand `g6.xlarge` `i-042db66bcbf603c79`, us-east-1a, NVIDIA L4, driver 595.112.07, CUDA 13.2 | 8 checks passed, 0 failed: a CUDA kernel compiles and runs, the trainer builds with bullet's CUDA backend (32 s), and the dataset grants hold in both directions (list and read under `data/selfplay/` and write under `data/nets/` allowed; list of `data/` and write under `data/selfplay/` denied) |
+| `Match` [43763495868](https://github.com/Braveheart-Chess/braveheart/actions/runs/43763495868), `v0.54.0` against `v0.53.0`, 10+0.1, 200 games | on-demand `c8a.16xlarge` `i-00e9990bf49ba3200`, us-east-1a | The task ran and reported: −17.4 Elo (99% interval −49.0 to +14.0), LOS 7.7%, 23 W / 33 L / 144 D, pentanomial 2, 24, 56, 18, 0 |
+
+The match is a check that the runner plays and reports, not a strength
+reading. The two releases differ in no search or eval code (`v0.54.0` adds the
+names above and a docs change, and the bench signature was 919,304 before and
+after #267), so the expected difference is zero and the interval includes it.
+With 200 games it could not have shown a small difference either way.
+
+The GPU smoke test wrote `data/nets/smoke-20261115T212604Z/hello.txt` (28
+bytes), so the new bucket has one object the old one does not. Both instances
+were terminated by the task runner.
+
+**Cost:** at most about $0.04 and $0.27, estimates from the workflows' whole
+run times (3 min 3 s at $0.8048 an hour, 4 min 43 s at $3.4486 an hour), not
+billed figures; the instances ran for less than that.
+
+**Not checked:** the `sprt`, `datagen`, `relabel` and `cpu` profiles, and a
+`Train` run, under the new project. Their launch templates and grants were
+created with the others; none has launched yet.
+
 ## Adding a run, a generation or a label set
 
 After every Datagen or Relabel run, including smoke tests, benchmarks and
