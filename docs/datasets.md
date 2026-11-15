@@ -6,7 +6,7 @@ trained on; this page says what is in them. How the data is made and laid out is
 [datagen.md](datagen.md), and how it is checked in
 [datagen-runbook.md](datagen-runbook.md).
 
-Original data is in `s3://jwall-engineering-rusty-chess-nnue/data/selfplay/v1/gen=N/run=RUN/`,
+Original data is in `s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=N/run=RUN/`,
 and [other label sets](#label-sets) are under `data/selfplay/relabel/`. Both are
 append-only and kept forever. Every number here comes from the shard manifests
 or from `datagen-audit`, never from the workflow's progress lines.
@@ -610,6 +610,24 @@ games-weighted median of the batch medians).
 **Cost:** about $11 on spot (about 12.6 instance-hours), an estimate, not a
 billed figure.
 
+## The bucket move
+
+Until 2026-11-15 this data was in `s3://jwall-engineering-rusty-chess-nnue`,
+the bucket of the project's old name. It was copied, key for key, to
+`s3://jwall-engineering-braveheart-nnue`: a path this page or
+[nets.md](nets.md) records under the old bucket is the same key in the new one.
+Recorded runs keep the path that was true when they ran.
+
+The copy ran inside S3, with AWS CLI 2.34.59 and admin credentials:
+
+```sh
+aws s3 sync s3://jwall-engineering-rusty-chess-nnue s3://jwall-engineering-braveheart-nnue --only-show-errors
+```
+
+It printed no error. Its start and end times were not recorded. The old bucket
+was not changed and is kept until the owner deletes it. The audit of the copy
+is in the [audit log](#audit-log), under 2026-11-15.
+
 ## Adding a run, a generation or a label set
 
 After every Datagen or Relabel run, including smoke tests, benchmarks and
@@ -828,3 +846,31 @@ runs' times, zones and prices from their job logs.
 
 **Not checked:** the billed cost (the dollar figure is from launch prices and
 job hours); the manager's own hour count misses the cancelled run.
+
+**2026-11-15,** the [bucket move](#the-bucket-move), with
+`ci/bucket-copy-audit.sh` as added by #267, read-only with
+`AWS_PROFILE=prog-strength-admin`, from 20:32 to 20:36 UTC:
+
+```sh
+ci/bucket-copy-audit.sh jwall-engineering-rusty-chess-nnue jwall-engineering-braveheart-nnue <dir>
+```
+
+| Check | Result |
+|:--|:--|
+| Objects and bytes in each bucket, from `list-objects-v2` | 573,051 objects and 84,480,796,787 bytes in both |
+| Every source key is in the destination with the same size | All 573,051; none missing, none of another size |
+| Every source key has the same ETag in the destination | All 573,051 |
+| Keys only in the destination | None |
+| What an equal ETag means here | No ETag in either listing is a multipart one (none has a `-`), the largest object is 4,744,768 bytes, and both buckets use SSE-S3 (`AES256`), so every ETag is the MD5 of the object's bytes |
+| Objects under each prefix | `data/selfplay/v1/`: 384,618 objects, 55,466,430,799 bytes. `data/selfplay/relabel/`: 188,298 objects, 28,965,933,481 bytes. `data/nets/`: 135 objects, 48,432,507 bytes |
+| `head-object` on 6 objects in both buckets (the largest object, which is a `net.nnue`, another `net.nnue`, and four chosen at random): metadata, content type, length, ETag, encryption | Identical for all 6. None carries user metadata |
+| `net.nnue` of the 6 retired nets, downloaded from the new bucket, against the SHA-256 in `crates/search/src/nnue.rs` | All 6 match: `net1-l050-r41022503872`, `net2x80-l050-r41131366975`, `net4w512-l050-r41170687764`, `net5-l050-r41229287546`, `net6k4-l050-r41282883885`, `net7rl012-l050-r42054816508` |
+
+**Not checked:** no object was read back and hashed except those 6 nets; the
+rest rests on the ETags. No `datagen-audit` and no label-set audit was re-run
+from the new bucket, and no audit verdict changes. Whether anything wrote to
+the old bucket during the copy was not watched; the two listings, taken after
+it, are equal, and the last Datagen, Relabel and Train runs before it were on
+2026-11-09, 2026-11-07 and 2026-11-13. The copied objects start in S3 Standard
+and move to Intelligent-Tiering by the bucket's lifecycle rule; storage class
+was not compared.

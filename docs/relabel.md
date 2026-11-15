@@ -221,7 +221,7 @@ trains on it, listed in
 from S3:
 
 ```sh
-ci/label-set-audit.sh s3://jwall-engineering-rusty-chess-nnue/data/selfplay \
+ci/label-set-audit.sh s3://jwall-engineering-braveheart-nnue/data/selfplay \
   net7-l050-r41363264869-n5000 0,1,2 /tmp/n7-audit
 ```
 

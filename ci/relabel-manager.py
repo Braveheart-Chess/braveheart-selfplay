@@ -35,8 +35,8 @@ import subprocess
 import sys
 import time
 
-REPO = 'jwallace145/braveheart'
-DATASET = 's3://jwall-engineering-rusty-chess-nnue/data/selfplay'
+REPO = 'Braveheart-Chess/braveheart'
+DATASET = 's3://jwall-engineering-braveheart-nnue/data/selfplay'
 TITLE = re.compile(r'^Relabel: gen ([0-9,]+), (\d+) × (\d+) min, (\d+) nodes(?:, slots ([0-9,]+))?')
 INTERRUPTED = re.compile(r'warning: interrupted by spot reclamation')
 NO_CAPACITY = re.compile(r'error: no (?:spot |on-demand )?\S* ?capacity|no-capacity')

@@ -16,7 +16,7 @@ gh workflow run Datagen --ref main -f instances=1 -f minutes=5 -f note="smoke te
 # 3. The real run: up to 3 instances, at most 300 minutes each.
 gh workflow run Datagen --ref main -f instances=3 -f minutes=180 -f note="gen N for net N+1"
 # 4. Audit a sample, from a checkout of the data's engine_sha (printed in every manifest).
-ci/datagen-sample.sh s3://jwall-engineering-rusty-chess-nnue/data/selfplay/v1/gen=N/run=RUN/ /tmp/sample
+ci/datagen-sample.sh s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=N/run=RUN/ /tmp/sample
 cargo run --release -p braveheart-tools --bin datagen-audit -- check /tmp/sample --research 2000 --bullet
 # 5. Train only on a run whose audit says GO, or INVESTIGATE with every warning explained.
 ```
@@ -79,7 +79,7 @@ gh workflow run Datagen --ref main -f instances=1 -f minutes=5 -f upload=false -
 ```sh
 gh run view <run id>                                     # the three Generate jobs
 aws logs tail /jwall-engineering/rusty-chess/tasks --follow --since 5m   # live progress lines
-aws s3 ls s3://jwall-engineering-rusty-chess-nnue/data/selfplay/v1/gen=0/run=<run>/task=t0/manifests/ | wc -l
+aws s3 ls s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=0/run=<run>/task=t0/manifests/ | wc -l
 aws ec2 describe-instances --filters Name=tag:Purpose,Values=ci-task \
   --query 'Reservations[].Instances[].[Tags[?Key==`TaskId`]|[0].Value,State.Name,InstanceLifecycle]' --output text
 ```
@@ -197,7 +197,7 @@ needs no cloud resources; generation 1 (368M records) took about 5 minutes on
 16 cores.
 
 ```sh
-aws s3 sync s3://jwall-engineering-rusty-chess-nnue/data/selfplay/v1/gen=N/ /tmp/genN
+aws s3 sync s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=N/ /tmp/genN
 git checkout <engine_sha>   # the data's commit, printed in every manifest, for step 4
 ci/datagen-full-audit.sh /tmp/genN /tmp/genN-audit
 ```
