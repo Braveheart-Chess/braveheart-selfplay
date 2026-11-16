@@ -7,12 +7,12 @@ use std::sync::atomic::AtomicBool;
 
 use braveheart_core::types::Color;
 use braveheart_search::search::{MATE, Searcher};
-use braveheart_tools::datagen::{Settings, play_game, record_line};
-use braveheart_tools::openings::Rng;
-use braveheart_tools::relabel::{MATE_CLAMP, relabel_shard, white_label};
+use braveheart_selfplay::datagen::{Settings, play_game, record_line};
+use braveheart_selfplay::relabel::{MATE_CLAMP, relabel_shard, white_label};
+use braveheart_selfplay::rng::Rng;
 
 fn quick() -> Settings {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../datagen.toml");
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/datagen.toml");
     Settings {
         nodes: 300,
         hash_mb: 1,

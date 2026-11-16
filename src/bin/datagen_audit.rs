@@ -114,7 +114,7 @@ fn dataset_net(shards: &[Shard]) -> Option<Arc<Network>> {
             .all(|s| &s.manifest["settings"]["generation"] == generation),
         "the shards mix generations; audit one at a time"
     );
-    let settings: braveheart_tools::datagen::Settings =
+    let settings: braveheart_selfplay::datagen::Settings =
         serde_json::from_value(shards[0].manifest["settings"].clone()).unwrap();
     settings.network()
 }
@@ -968,8 +968,8 @@ fn research(dir: &Path, n: usize) -> (f64, f64, f64) {
 /// a different net or setting changes the moves within a few games. Returns
 /// the number of workers whose games differ.
 fn determinism(dir: &Path, n: usize) -> usize {
-    use braveheart_tools::datagen::{Settings, net_provenance, play_game};
-    use braveheart_tools::openings::Rng;
+    use braveheart_selfplay::datagen::{Settings, net_provenance, play_game};
+    use braveheart_selfplay::rng::Rng;
     braveheart_core::attacks::init();
     let shards = load(dir);
     let firsts: Vec<&Shard> = shards

@@ -26,7 +26,7 @@ use braveheart_search::nnue::{
     DEFAULT_NET_ID, NETS, Network, network_by_id, retired_net, retired_net_message,
 };
 use braveheart_search::search::Searcher;
-use braveheart_tools::relabel::{RelabelStats, relabel_shard};
+use braveheart_selfplay::relabel::{RelabelStats, relabel_shard};
 use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
@@ -151,7 +151,7 @@ fn relabel_one(
         "label_id": job.label_id,
         "net": {"id": job.net_id, "sha256": job.net_sha},
         "nodes": job.nodes,
-        "engine_version": env!("CARGO_PKG_VERSION"),
+        "engine_version": env!("BRAVEHEART_ENGINE_VERSION"),
         "engine_sha": job.engine_sha,
         "source_positions_sha256": source_sha,
         "stats": stats,
@@ -198,7 +198,9 @@ fn main() {
         || std::thread::available_parallelism().map_or(1, |n| n.get()),
         |n| n.parse().expect("--threads"),
     );
-    let engine_sha = get("--engine-sha").unwrap_or_else(|| "unknown".to_string());
+    // The pinned engine (build.rs) unless the task script passes another.
+    let engine_sha =
+        get("--engine-sha").unwrap_or_else(|| env!("BRAVEHEART_ENGINE_SHA").to_string());
     let label_id = get("--label-id").unwrap_or_else(|| format!("{net_id}-n{nodes}"));
     let fail = |why: String| -> ! {
         eprintln!("relabel: {why}");
