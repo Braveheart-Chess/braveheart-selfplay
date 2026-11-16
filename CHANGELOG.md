@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.1.0...v0.2.0) (2026-11-16)
+
+
+### Features
+
+* declare the positions dataset, versioned, read by the trainer's GPU tasks ([#3](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/3)) ([090fa53](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/090fa53afa9715226a0cfe08d9badcdf549b19ba))
+* port Datagen and Relabel to this project, its bucket and the pinned engine ([#4](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/4)) ([298b239](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/298b2398ded498c0e28a64ec322a824ab38ee761))
+
 ## 0.1.0 (2026-11-16)
 
 
