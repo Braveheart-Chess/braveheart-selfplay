@@ -3,8 +3,11 @@
 # bucket move"). Read-only: it lists both buckets and reads object checksums;
 # it never writes or deletes.
 #
-#   ci/bucket-copy-audit.sh SOURCE_BUCKET DESTINATION_BUCKET [WORK_DIR]
+#   ci/bucket-copy-audit.sh [--prefix PREFIX] SOURCE_BUCKET DESTINATION_BUCKET [WORK_DIR]
 #
+#   --prefix  compare only the keys under PREFIX (for example data/selfplay/),
+#             in both buckets: for a bucket whose prefixes were copied to
+#             different buckets. Keys keep their full names either way.
 #   WORK_DIR  both listings as JSON, and a file of keys for each kind of
 #             difference; a temporary directory when not given
 #
@@ -20,22 +23,33 @@
 # "the same bytes". Keys that exist only in the destination are reported and
 # do not fail the audit. Exit 0 only when every source object is accounted for.
 set -euo pipefail
-src="$1"; dst="$2"; work="${3:-$(mktemp -d)}"
+prefix=""
+if [ "${1:-}" = --prefix ]; then
+  prefix="${2:?--prefix needs a value}"; shift 2
+  [[ "$prefix" =~ ^[A-Za-z0-9=._-]+(/[A-Za-z0-9=._-]+)*/$ ]] \
+    || { echo "bucket-copy-audit: --prefix must be path segments ending in /, with no leading /" >&2; exit 2; }
+fi
+src="${1:?a source bucket}"; dst="${2:?a destination bucket}"; work="${3:-$(mktemp -d)}"
 mkdir -p "$work"
 for b in "$src" "$dst"; do
-  echo "listing s3://$b ..." >&2
-  aws s3api list-objects-v2 --bucket "$b" --output json \
+  echo "listing s3://$b/$prefix ..." >&2
+  aws s3api list-objects-v2 --bucket "$b" ${prefix:+--prefix "$prefix"} --output json \
     --query 'Contents[].[Key,Size,ETag]' > "$work/$b.json"
 done
-python3 - "$src" "$dst" "$work" <<'PY'
+python3 - "$src" "$dst" "$work" "$prefix" <<'PY'
 import json, subprocess, sys
-src, dst, work = sys.argv[1:4]
+src, dst, work, prefix = sys.argv[1:5]
 def load(b):
     rows = json.load(open(f"{work}/{b}.json")) or []
     return {k: (int(size), etag) for k, size, etag in rows}
 a, b = load(src), load(dst)
-print(f"source      s3://{src}: {len(a):>9,} objects, {sum(s for s, _ in a.values()):>16,} bytes")
-print(f"destination s3://{dst}: {len(b):>9,} objects, {sum(s for s, _ in b.values()):>16,} bytes")
+# A listing under a prefix holds only that prefix; check rather than trust it.
+outside = sorted(k for k in list(a) + list(b) if not k.startswith(prefix))
+if outside:
+    print(f"keys outside the prefix {prefix!r} in a listing: {outside[:3]}")
+    sys.exit(1)
+print(f"source      s3://{src}/{prefix}: {len(a):>9,} objects, {sum(s for s, _ in a.values()):>16,} bytes")
+print(f"destination s3://{dst}/{prefix}: {len(b):>9,} objects, {sum(s for s, _ in b.values()):>16,} bytes")
 missing = sorted(k for k in a if k not in b)
 extra = sorted(k for k in b if k not in a)
 size_diff = sorted(k for k in a if k in b and a[k][0] != b[k][0])
@@ -71,7 +85,7 @@ for name, keys in (("missing", missing), ("size-differs", size_diff), ("checksum
         open(path, "w").write("\n".join(keys) + "\n")
         print(f"  {name}: {path}")
 if not a:
-    print(f"the source s3://{src} lists no objects: wrong bucket name, or nothing to verify")
+    print(f"the source s3://{src}/{prefix} lists no objects: wrong bucket name or prefix, or nothing to verify")
 ok = bool(a) and not (missing or size_diff or bad or unverified)
 print("RESULT:", "every source object is in the destination and matches" if ok else "NOT VERIFIED")
 sys.exit(0 if ok else 1)
