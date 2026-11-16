@@ -147,5 +147,25 @@ class AfterOutcome(unittest.TestCase):
         self.assertEqual(m.after_outcome(self.res('interrupted'), 10, 0, 2), (None, 0, 0))
 
 
+
+class Provenance(unittest.TestCase):
+    def test_a_shard_made_here_is_made_at_its_selfplay_commit(self):
+        self.assertEqual(m.made_at({'engine_sha': 'e' * 40, 'selfplay_sha': 's' * 40}), 's' * 40)
+
+    def test_a_shard_made_in_the_engine_repository_is_made_at_its_engine_commit(self):
+        self.assertEqual(m.made_at({'engine_sha': 'e' * 40}), 'e' * 40)
+
+    def test_the_pinned_engine_is_braveheart_searchs_git_commit(self):
+        lock = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Cargo.lock')).read()
+        self.assertRegex(m.pinned_engine(lock), r'^[0-9a-f]{40}$')
+        fake = ('[[package]]\nname = "braveheart-core"\nversion = "0.54.0"\n'
+                'source = "git+https://github.com/Braveheart-Chess/braveheart?tag=v0.54.0#' + 'a' * 40 + '"\n\n'
+                '[[package]]\nname = "braveheart-search"\nversion = "0.54.0"\n'
+                'source = "git+https://github.com/Braveheart-Chess/braveheart?tag=v0.54.0#' + 'b' * 40 + '"\n')
+        self.assertEqual(m.pinned_engine(fake), 'b' * 40)
+        with self.assertRaises(RuntimeError):
+            m.pinned_engine('[[package]]\nname = "braveheart-search"\nversion = "0.54.0"\n')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=1)
