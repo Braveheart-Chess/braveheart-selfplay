@@ -110,9 +110,9 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.tasks) }}
-    uses: jwallace145/jwall-engineering-infra/.github/workflows/remote-task.yml@v0.28.0
+    uses: jwallace145/jwall-engineering-infra/.github/workflows/remote-task.yml@v0.36.0
     with:
-      project: braveheart
+      project: braveheart-selfplay
       profile: relabel
       script: ci/relabel-task.sh
       args: ${{ matrix.args }}
