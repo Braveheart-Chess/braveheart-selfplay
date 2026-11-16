@@ -18,8 +18,11 @@
 # 3. totals over all batches (summary.json): records, games, P0 failures,
 #    bulletformat bytes, results.
 # 4. determinism: every worker's first GAMES_PER_WORKER (12) games regenerated
-#    from its seed. Build this tool at the data's engine_sha (in every
-#    manifest): identical games prove that engine, net and settings played them.
+#    from its seed. Run this from a checkout of the commit that made the data,
+#    its selfplay_sha (in every manifest), which pins the engine: identical
+#    games prove that engine, net and settings played them. A generation made
+#    in the engine repository has no selfplay_sha; audit it with that
+#    repository's ci/datagen-full-audit.sh at its engine_sha.
 #
 # Exits 1 if any step finds a P0 problem. Needs Rust and python3.
 set -euo pipefail
@@ -33,7 +36,7 @@ rm -rf "$out"; mkdir -p "$out/batches" "$out/logs"
 out=$(cd "$out" && pwd)
 
 echo "==> building datagen-audit at $(git -C "$root" rev-parse --short HEAD)"
-(cd "$root" && cargo build --release --locked --quiet -p braveheart-tools --bin datagen-audit)
+(cd "$root" && cargo build --release --locked --quiet --bin datagen-audit)
 audit="$root/target/release/datagen-audit"
 status=0
 
