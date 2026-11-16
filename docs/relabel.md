@@ -115,13 +115,13 @@ original manifests predate checksums.
 
 ## Running it
 
-- **The tool:** `relabel` in `crates/tools`, one worker per core, a shard at
+- **The tool:** `relabel` in this repository's crate, one worker per core, a shard at
   a time, deterministic for a given net, budget and shard.
 - **Which net:** `--net` takes the embedded (default) net's id, or a
   retired net's id with `--net-file`, its file from the dataset bucket
   (`data/nets/<id>/net.nnue`), which must match the SHA-256 in
   `nnue::RETIRED_NETS`. The binary embeds only the default net
-  ([nnue.md](nnue.md#the-embedded-net-and-the-retired-ones)).
+  ([nnue.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/nnue.md#the-embedded-net-and-the-retired-ones)).
 - **In the cloud:** the `Relabel` workflow runs `ci/relabel-task.sh` on up to
   three instances of the `relabel` task profile (`c8a.16xlarge`, spot): it may
   read `selfplay/` and write only `selfplay/relabel/`, so it can never change
@@ -249,7 +249,7 @@ build kept.
 2. **The cloud run:** the `relabel` profile (jwall-engineering-infra
    `v0.18.0`), `ci/relabel-task.sh` and the `Relabel` workflow.
 3. **Training on it:** the `Train` workflow's `labels` input picks a label set
-   per generation ([training.md](training.md)). A relabelled generation is the
+   per generation ([training.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/training.md)). A relabelled generation is the
    same download from `selfplay/relabel/<label id>/gen=N/`, which the GPU
    profile can already read.
 4. **The experiment:** relabel generations 0–2 (the three weakest labellers)

@@ -1,7 +1,14 @@
 # Self-play datasets
 
+> **A snapshot until the data move.** Datagen and Relabel still run from the
+> engine repository, and its
+> [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md)
+> is the ledger until the data moves to this repository's bucket. This copy is
+> engine commit `1a25b13`; record nothing here. It is refreshed from the
+> engine's at the data move.
+
 The ledger of every self-play generation, every label set and every run that
-made them. Each net in [nets.md](nets.md) names the generations and labels it
+made them. Each net in [nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md) names the generations and labels it
 trained on; this page says what is in them. How the data is made and laid out is in
 [datagen.md](datagen.md), and how it is checked in
 [datagen-runbook.md](datagen-runbook.md).
@@ -615,7 +622,7 @@ billed figure.
 Until 2026-11-15 this data was in `s3://jwall-engineering-rusty-chess-nnue`,
 the bucket of the project's old name. It was copied, key for key, to
 `s3://jwall-engineering-braveheart-nnue`: a path this page or
-[nets.md](nets.md) records under the old bucket is the same key in the new one.
+[nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md) records under the old bucket is the same key in the new one.
 Recorded runs keep the path that was true when they ran.
 
 The copy ran inside S3, with AWS CLI 2.34.59 and admin credentials:
