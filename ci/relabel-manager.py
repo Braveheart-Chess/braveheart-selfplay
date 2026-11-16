@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Keep a Relabel campaign's slots busy on spot until its label set is complete.
 
-A campaign is one label set (this commit's default net at --nodes), a list of
+A campaign is one label set (main's pinned engine's default net at --nodes), a list of
 generations and a fixed number of slots N. Slot I is the Relabel task "I of N":
 it owns every Nth self-play worker, and a task skips shards already relabelled,
 so a slot relaunched after a spot reclamation resumes exactly its own leftovers.
@@ -35,8 +35,10 @@ import subprocess
 import sys
 import time
 
-REPO = 'Braveheart-Chess/braveheart'
-DATASET = 's3://jwall-engineering-braveheart-nnue/data/selfplay'
+REPO = 'Braveheart-Chess/braveheart-selfplay'
+# The engine this repository pins (Cargo.lock), whose nnue.rs names the default net.
+ENGINE_REPO = 'Braveheart-Chess/braveheart'
+DATASET = 's3://jwall-engineering-braveheart-selfplay-positions/data/selfplay'
 TITLE = re.compile(r'^Relabel: gen ([0-9,]+), (\d+) × (\d+) min, (\d+) nodes(?:, slots ([0-9,]+))?')
 INTERRUPTED = re.compile(r'warning: interrupted by spot reclamation')
 NO_CAPACITY = re.compile(r'error: no (?:spot |on-demand )?\S* ?capacity|no-capacity')
@@ -46,6 +48,24 @@ NO_PROGRESS_LIMIT = 3  # launched runs in a row that relabel nothing before a sl
 
 
 # ---- pure logic (unit tested in ci/test-relabel-manager.py) ----------------
+
+
+def made_at(block):
+    """The commit that made a shard or label set, from its manifest's provenance or relabel block:
+    braveheart-selfplay's commit, or for data made in the engine repository (no selfplay_sha) the
+    engine commit, which held the code then."""
+    return block.get('selfplay_sha') or block.get('engine_sha')
+
+
+def pinned_engine(cargo_lock):
+    """The engine commit a Cargo.lock pins: braveheart-search's git source."""
+    for block in cargo_lock.split('[[package]]'):
+        if '\nname = "braveheart-search"\n' in block:
+            m = re.search(r'^source = "git\+[^"#]+#([0-9a-f]{40})"$', block, re.M)
+            if m:
+                return m[1]
+    raise RuntimeError('Cargo.lock pins no braveheart-search from git')
+
 
 def worker_of(shard):
     """gen=N/run=R/task=T/t0-w017-s00005 -> gen=N/run=R/task=T/t0-w017."""
@@ -192,7 +212,10 @@ def list_shards(root, generations):
 
 
 def default_net(sha):
-    src = base64.b64decode(gh_api(f'repos/{REPO}/contents/crates/search/src/nnue.rs?ref={sha}')['content']).decode()
+    """The default net of the engine this repository pins at `sha`."""
+    lock = base64.b64decode(gh_api(f'repos/{REPO}/contents/Cargo.lock?ref={sha}')['content']).decode()
+    engine = pinned_engine(lock)
+    src = base64.b64decode(gh_api(f'repos/{ENGINE_REPO}/contents/crates/search/src/nnue.rs?ref={engine}')['content']).decode()
     m = re.search(r'pub const NETS: \[EmbeddedNet; \d+\] = \[EmbeddedNet \{\s*id: "([^"]+)"', src)
     if not m:
         raise RuntimeError(f'no default net in nnue.rs at {sha}')
@@ -271,8 +294,8 @@ class Campaign:
                 gen_run_task, name = shard.rsplit('/', 1)
                 key = f'{key_prefix}/{gen_run_task}/manifests/{name}.json'
                 m = json.loads(sh(['aws', 's3', 'cp', '--only-show-errors', f's3://{bucket}/{key}', '-']))
-                if m['relabel']['engine_sha'] != self.sha:
-                    raise RuntimeError(f'{key} was relabelled at {m["relabel"]["engine_sha"][:7]}, but main is '
+                if made_at(m['relabel']) != self.sha:
+                    raise RuntimeError(f'{key} was relabelled at {made_at(m["relabel"])[:7]}, but main is '
                                        f'{self.sha[:7]}; a label set must come from one commit')
 
     def runs(self):

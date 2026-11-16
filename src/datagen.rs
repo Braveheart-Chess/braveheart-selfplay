@@ -383,6 +383,11 @@ pub struct Provenance {
     pub engine_version: String,
     /// The commit the engine was built from.
     pub engine_sha: String,
+    /// The commit of braveheart-selfplay that made the shard: rebuild there to
+    /// reproduce it (it pins the engine). `None` for data made in the engine
+    /// repository, where `engine_sha` is that commit.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selfplay_sha: Option<String>,
     /// Its bench signature.
     pub engine_bench: Option<u64>,
     /// The network the games were played with: `None` for generation 0

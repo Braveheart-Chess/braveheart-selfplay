@@ -25,8 +25,10 @@
 //! failure exits 1. P1 (quality) statistics are compared with the bars in
 //! `[audit]` of the config and reported as PASS or WARN. `research`,
 //! `determinism` and the deep checks search with the engine this binary was
-//! built from; run them from a build at the data's `engine_sha` (printed) for
-//! exact comparisons.
+//! built from; run them from a build at the commit that made the data
+//! (printed) for exact comparisons: its `selfplay_sha` in this repository, or,
+//! for data made in the engine repository (no `selfplay_sha`), its
+//! `engine_sha` there.
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::io::{BufRead, BufReader};
@@ -983,10 +985,17 @@ fn determinism(dir: &Path, n: usize) -> usize {
     );
     let sh = firsts[0];
     let generation = sh.manifest["settings"]["generation"].as_u64().unwrap_or(0) as u32;
-    println!(
-        "   the data's engine_sha: {} (build this tool there for an exact comparison)",
-        sh.manifest["provenance"]["engine_sha"]
-    );
+    let p = &sh.manifest["provenance"];
+    match p.get("selfplay_sha").and_then(|s| s.as_str()) {
+        Some(sha) => println!(
+            "   made at braveheart-selfplay {sha} with engine {} (build this tool there for an exact comparison)",
+            p["engine_sha"]
+        ),
+        None => println!(
+            "   made in the engine repository at {} (build that commit's datagen-audit for an exact comparison)",
+            p["engine_sha"]
+        ),
+    }
     match (
         net_provenance(generation),
         sh.manifest["provenance"].get("net"),
@@ -1201,9 +1210,14 @@ fn inventory(root: &Path, json_out: Option<&Path>) -> usize {
         *settings.entry(m["settings"].to_string()).or_default() += 1;
         *engines
             .entry(format!(
-                "{} {}",
+                "{} {}{}",
                 p["engine_version"].as_str().unwrap_or("?"),
-                p["engine_sha"].as_str().unwrap_or("?")
+                p["engine_sha"].as_str().unwrap_or("?"),
+                // The code that made it, too: one generation, one commit.
+                p.get("selfplay_sha")
+                    .and_then(|s| s.as_str())
+                    .map(|s| format!(" (braveheart-selfplay {s})"))
+                    .unwrap_or_default()
             ))
             .or_default() += 1;
         let net = match p.get("net") {

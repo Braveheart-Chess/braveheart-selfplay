@@ -239,7 +239,7 @@ class Campaign:
         picks = sorted(shards)[::max(1, len(shards) // k)][:k]
         manifests = [self.manifest(s) for s in picks]
         mean = sum(m['positions'] for m in manifests) / len(manifests)
-        shas = {(m.get('provenance') or {}).get('engine_sha') for m in manifests} - {None}
+        shas = {rm.made_at(m.get('provenance') or {}) for m in manifests} - {None}
         return mean, shas
 
     def check_existing_commit(self, shas):

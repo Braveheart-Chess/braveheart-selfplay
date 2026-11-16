@@ -15,8 +15,8 @@
 # nothing; each shard's manifest (with its records' SHA-256) is kept in
 # OUT_DIR so two builds' output can be compared byte for byte.
 #
-# Builds datagen at this commit, runs it on every core with the settings in
-# datagen.toml, and uploads each shard as soon as its manifest appears:
+# Builds datagen at this commit (which pins the engine in Cargo.lock), runs it
+# on every core with the settings in datagen.toml, and uploads each shard as soon as its manifest appears:
 # positions and games gzip-compressed, the manifest last. On SIGTERM (a spot
 # interruption: about two minutes' notice) it asks the workers to stop, uploads
 # every complete shard and exits; a shard in progress is lost, nothing is
@@ -55,12 +55,15 @@ since() { echo $(( $(date +%s) - t0 )); }
 generation=$(awk -F= '/^generation *=/ {gsub(/[ \t]/, "", $2); print $2; exit}' datagen.toml)
 prefix="$dataset/gen=$generation/run=$run/task=$task"
 cores=$(nproc)
-sha=$(git rev-parse HEAD)
+# This repository's commit makes the data; the engine is the one Cargo.lock
+# pins. Every manifest records both (docs/datagen.md, "Provenance").
+selfplay_sha=$(git rev-parse HEAD)
+read -r engine_version engine_sha < <(ci/engine-pin.sh)
 echo "== datagen: run $run task $task, generation $generation, $cores workers, $minutes minutes, seed $seed"
 read -ra rustflags <<< "$RUSTFLAGS"
 features=$(rustc --print cfg "${rustflags[@]}" 2>/dev/null \
   | grep -oE '^target_feature="(avx2|avx512f|avx512bw|avx512vnni|avxvnni)"$' | cut -d'"' -f2 | tr '\n' ' ' || true)
-echo "   commit ${sha:0:7}; build: $RUSTFLAGS (${features:-no wide SIMD features})"
+echo "   braveheart-selfplay ${selfplay_sha:0:7}, engine $engine_version (${engine_sha:0:7}); build: $RUSTFLAGS (${features:-no wide SIMD features})"
 if [ "$upload" = 1 ]; then
   echo "   uploading to $prefix/"
 else
@@ -68,10 +71,17 @@ else
   mkdir -p "$OUT_DIR/manifests"
 fi
 
-cargo build --release --locked --quiet
-cargo build --release --locked --quiet -p braveheart-tools --bin datagen
-bench=$(target/release/braveheart bench | awk -F: '/Nodes searched/ {gsub(/ /, "", $2); print $2}')
-echo "engine $(target/release/braveheart --version), bench $bench ($(since)s)"
+cargo build --release --locked --quiet --bin datagen
+# The bench signature is the engine's own: its binary, at the pinned commit,
+# with the engine's Cargo.lock (the bench lives in the engine binary, not in
+# the crates this repository uses).
+cargo install --locked --quiet --git https://github.com/Braveheart-Chess/braveheart --rev "$engine_sha" \
+  --root "$work/engine" braveheart
+engine="$work/engine/bin/braveheart"
+[ "$("$engine" --version)" = "braveheart $engine_version" ] \
+  || { echo "datagen-task: the engine at ${engine_sha:0:7} says '$("$engine" --version)', not braveheart $engine_version" >&2; exit 1; }
+bench=$("$engine" bench | awk -F: '/Nodes searched/ {gsub(/ /, "", $2); print $2}')
+echo "engine $("$engine" --version), bench $bench ($(since)s)"
 
 uploaded=0
 # The AWS CLI uploads a directory's files concurrently; 32 at once keeps a
@@ -126,7 +136,7 @@ upload_ready() {
 
 launch=(target/release/datagen --config datagen.toml --out "$shards" --run "$run" --task "$task"
   --threads "$cores" --seed "$seed" --max-minutes "$minutes" --stop-file "$stop"
-  --engine-sha "$sha" --engine-bench "$bench")
+  --engine-bench "$bench" --selfplay-sha "$selfplay_sha")
 # datagen runs in its own session, writing its log to a file, so the SIGTERM
 # the runner sends this script's process group on a spot notice reaches only
 # this script: the trap below then asks the workers to stop through the stop
@@ -170,7 +180,8 @@ positions=$(grep -o 'done: [0-9]* games, [0-9]* positions' "$OUT_DIR/datagen.log
 games=$(grep -o 'done: [0-9]* games' "$OUT_DIR/datagen.log" | awk '{print $2}' || true)
 cat > "$OUT_DIR/task.json" <<JSON
 {"schema": "rusty-chess-selfplay/1", "run": "$run", "task": "$task", "generation": $generation,
- "engine_sha": "$sha", "engine_bench": ${bench:-null}, "workers": $cores, "seed": $seed,
+ "engine_version": "$engine_version", "engine_sha": "$engine_sha", "selfplay_sha": "$selfplay_sha",
+ "engine_bench": ${bench:-null}, "workers": $cores, "seed": $seed,
  "minutes": $minutes, "games": ${games:-0}, "positions": ${positions:-0}, "shards": $uploaded,
  "seconds": $(since), "interrupted": $([ "$interrupted" = 1 ] && echo true || echo false),
  "target_cpu": "$target_cpu", "rustflags": "$RUSTFLAGS", "uploaded": $([ "$upload" = 1 ] && echo true || echo false),

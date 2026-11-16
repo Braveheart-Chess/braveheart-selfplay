@@ -3,7 +3,7 @@
 //!
 //! ```text
 //! relabel --in DIR --out DIR --net ID [--net-file FILE] [--nodes 5000] [--threads N]
-//!         [--label-id ID] [--engine-sha SHA]
+//!         [--label-id ID] [--engine-sha SHA] [--selfplay-sha SHA]
 //! ```
 //!
 //! `--in` is a local copy of `selfplay/v1/` or any part of it (shards are
@@ -95,6 +95,8 @@ struct Job<'a> {
     nodes: u64,
     label_id: &'a str,
     engine_sha: &'a str,
+    /// This repository's commit; `None` leaves it out of the manifest.
+    selfplay_sha: Option<&'a str>,
 }
 
 /// Relabel the shard whose manifest is `manifest`. Returns its statistics,
@@ -157,6 +159,9 @@ fn relabel_one(
         "stats": stats,
         "seconds": started.elapsed().as_secs_f64(),
     });
+    if let Some(sha) = job.selfplay_sha {
+        m["relabel"]["selfplay_sha"] = serde_json::json!(sha);
+    }
     write_atomic(
         &out_manifest,
         serde_json::to_string_pretty(&m).unwrap().as_bytes(),
@@ -172,7 +177,7 @@ fn main() {
             .and_then(|i| args.get(i + 1))
             .cloned()
     };
-    let usage = "usage: relabel --in DIR --out DIR --net ID|default [--net-file FILE] [--nodes 5000] [--threads N] [--label-id ID] [--engine-sha SHA]\n       relabel --net ID|default [--nodes 5000] --print-label-id";
+    let usage = "usage: relabel --in DIR --out DIR --net ID|default [--net-file FILE] [--nodes 5000] [--threads N] [--label-id ID] [--engine-sha SHA] [--selfplay-sha SHA]\n       relabel --net ID|default [--nodes 5000] --print-label-id";
     // `default` is the embedded net, whichever this release carries.
     let net_id = get("--net").map(|n| {
         if n == "default" {
@@ -201,6 +206,7 @@ fn main() {
     // The pinned engine (build.rs) unless the task script passes another.
     let engine_sha =
         get("--engine-sha").unwrap_or_else(|| env!("BRAVEHEART_ENGINE_SHA").to_string());
+    let selfplay_sha = get("--selfplay-sha");
     let label_id = get("--label-id").unwrap_or_else(|| format!("{net_id}-n{nodes}"));
     let fail = |why: String| -> ! {
         eprintln!("relabel: {why}");
@@ -256,6 +262,7 @@ fn main() {
         nodes,
         label_id: &label_id,
         engine_sha: &engine_sha,
+        selfplay_sha: selfplay_sha.as_deref(),
     };
     println!(
         "relabel: {} shards under {}, {label_id} ({nodes} nodes) on {threads} threads",

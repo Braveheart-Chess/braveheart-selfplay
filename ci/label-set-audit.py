@@ -3,7 +3,7 @@
 "Auditing a label set". Run through ci/label-set-audit.sh, which downloads both
 sides and builds the `relabel` this needs. Standard library only.
 
-    label-set-audit.py --data DIR --work DIR --label-id ID --engine-sha SHA
+    label-set-audit.py --data DIR --work DIR --label-id ID --engine-sha SHA [--selfplay-sha SHA]
                        --relabel BIN --dataset s3://... --json FILE
                        [--seed N] [--per-run N] [--negatives N] [--skip-determinism]
 
@@ -81,7 +81,7 @@ def sigmoid(score):
 
 def check_shard(job):
     """Checks 2 and 3, and check 4's sums, over one shard."""
-    rel, data, label_id, engine_sha, nodes = job
+    rel, data, label_id, engine_sha, selfplay_sha, nodes = job
     directory, shard = rel.rsplit("/", 1)
     out = {"rel": rel, "gen": rel.split("/")[0], "run": rel.split("/")[1], "fail": []}
     fail = out["fail"]
@@ -104,6 +104,8 @@ def check_shard(job):
         fail.append(f"label id {block['label_id']}")
     if block["engine_sha"] != engine_sha:
         fail.append(f"engine {block['engine_sha']}")
+    if block.get("selfplay_sha") != selfplay_sha:
+        fail.append(f"made at {block.get('selfplay_sha')}")
     if block["nodes"] != nodes:
         fail.append(f"nodes {block['nodes']}")
     if not label_id.startswith(block["net"]["id"]):
@@ -252,7 +254,7 @@ def determinism(args, all_shards, nodes):
             )
         subprocess.run(
             [args.relabel, "--in", f"{root}/in", "--out", f"{root}/out", "--net", "default", "--nodes", str(budget),
-             "--engine-sha", args.engine_sha],
+             "--engine-sha", args.engine_sha] + (["--selfplay-sha", args.selfplay_sha] if args.selfplay_sha else []),
             check=True,
         )
         return f"{root}/out"
@@ -298,6 +300,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     for flag in ("--data", "--work", "--label-id", "--engine-sha", "--relabel", "--dataset", "--json"):
         parser.add_argument(flag, required=True)
+    # The braveheart-selfplay commit that made the label set; absent for one
+    # made in the engine repository, whose manifests carry none.
+    parser.add_argument("--selfplay-sha", default=None)
     parser.add_argument("--seed", type=int, default=20261105)
     parser.add_argument("--per-run", type=int, default=6)
     parser.add_argument("--negatives", type=int, default=3)
@@ -315,7 +320,7 @@ def main():
     totals = collections.defaultdict(collections.Counter)
     failures = []
     net_shas = set()
-    jobs = [(rel, args.data, args.label_id, args.engine_sha, nodes) for rel in all_shards if rel not in set(problems.get("source shards without a relabelled manifest", []))]
+    jobs = [(rel, args.data, args.label_id, args.engine_sha, args.selfplay_sha, nodes) for rel in all_shards if rel not in set(problems.get("source shards without a relabelled manifest", []))]
     with multiprocessing.Pool() as pool:
         for i, r in enumerate(pool.imap_unordered(check_shard, jobs, chunksize=16), 1):
             failures.extend([r["rel"], f] for f in r["fail"])

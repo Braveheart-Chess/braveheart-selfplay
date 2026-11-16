@@ -3,7 +3,7 @@
 //! ```text
 //! datagen --config datagen.toml --out DIR --run ID --task ID [--threads N] [--seed S]
 //!         [--max-positions N] [--max-minutes M] [--stop-file PATH]
-//!         [--engine-sha SHA] [--engine-bench N]
+//!         [--engine-sha SHA] [--engine-bench N] [--selfplay-sha SHA]
 //! ```
 //!
 //! Plays games on `--threads` workers (default: every core) with the
@@ -41,6 +41,8 @@ fn main_inner(args: Vec<String>) -> Result<(), String> {
     // The pinned engine (build.rs); the task script may pass it explicitly.
     let mut engine_sha = String::from(env!("BRAVEHEART_ENGINE_SHA"));
     let mut engine_bench = None;
+    // This repository's commit, recorded so the data can be rebuilt from it.
+    let mut selfplay_sha = None;
     let mut it = args.into_iter();
     let num = |flag: &str, v: &str| {
         v.parse::<u64>()
@@ -60,6 +62,7 @@ fn main_inner(args: Vec<String>) -> Result<(), String> {
             "--stop-file" => stop_file = Some(PathBuf::from(value)),
             "--engine-sha" => engine_sha = value,
             "--engine-bench" => engine_bench = Some(num(&flag, &value)?),
+            "--selfplay-sha" => selfplay_sha = Some(value),
             other => return Err(format!("unknown option `{other}`")),
         }
     }
@@ -77,6 +80,7 @@ fn main_inner(args: Vec<String>) -> Result<(), String> {
             task: task.ok_or("`--task` is required")?,
             engine_version: env!("BRAVEHEART_ENGINE_VERSION").to_string(),
             engine_sha,
+            selfplay_sha,
             engine_bench,
             net,
         },

@@ -22,17 +22,14 @@ on 2026-11-16, with their history. Their part of the engine's `crates/tools/`
 became this repository's crate, at the root. Pull request numbers in the older
 commit messages refer to the engine repository.
 
-**Interim.** Until the data move, the positions stay in
-`s3://jwall-engineering-braveheart-nnue`, owned by the engine's project, and
-datagen and relabel keep running from the engine repository. This repository
-gets its own bucket, `jwall-engineering-braveheart-selfplay-positions`, at the
-data move. Until then:
+**Until the cutover** the positions are being copied, key for key, from
+`s3://jwall-engineering-braveheart-nnue`, owned by the engine's project, to
+this project's `s3://jwall-engineering-braveheart-selfplay-positions`:
 
 - The engine's [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md)
-  is the ledger; the copy here is a snapshot.
-- The Datagen and Relabel workflows and the `ci/` scripts are not ported yet.
-  They still run as the engine's project, whose launch role trusts only the
-  engine repository, so they fail before launching anything.
+  is the ledger until the copy; the copy here is a snapshot.
+- The Datagen and Relabel workflows are ported to this project and its bucket,
+  and wait for the cutover ([AGENTS.md](AGENTS.md#until-the-cutover)).
 
 ## Building
 

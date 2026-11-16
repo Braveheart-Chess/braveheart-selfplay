@@ -10,8 +10,10 @@
 #                summary.json; kept, so a second run downloads only what changed
 #
 # 1. downloads the manifests and positions of the originals and of the label set
-# 2. builds `relabel` from the commit named in the label set's manifests, in
-#    OUT_DIR/build, whatever is checked out here, and checks it prints LABEL_ID
+# 2. builds `relabel` from the commit that made the label set, in OUT_DIR/build,
+#    whatever is checked out here, and checks it prints LABEL_ID: its
+#    selfplay_sha in this repository, or, for a label set made in the engine
+#    repository (no selfplay_sha), its engine_sha there, fetched from GitHub
 # 3. ci/label-set-audit.py: inventory, every record against its source,
 #    provenance and checksums, plausibility, and determinism with a negative
 #    control
@@ -44,16 +46,28 @@ wait
 
 first=$(find "$out/data/labels" -path '*/manifests/*.json' -print -quit)
 [ -n "$first" ] || { echo "label-set-audit: no manifests for $label" >&2; exit 1; }
-sha=$(python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["relabel"]["engine_sha"])' "$first")
-echo "==> building relabel at ${sha:0:7}, the commit in the manifests"
+read -r sha selfplay_sha < <(python3 -I -c 'import json, sys; r = json.load(open(sys.argv[1]))["relabel"]; print(r["engine_sha"], r.get("selfplay_sha") or "")' "$first")
 rm -rf "$out/build/src"; mkdir -p "$out/build/src"
-git -C "$repo" archive "$sha" | tar -x -C "$out/build/src"
+if [ -n "$selfplay_sha" ]; then
+  echo "==> building relabel at braveheart-selfplay ${selfplay_sha:0:7}, the commit in the manifests (engine ${sha:0:7})"
+  git -C "$repo" archive "$selfplay_sha" | tar -x -C "$out/build/src"
+  package=()
+else
+  # Made in the engine repository, where engine_sha is the commit that held relabel.
+  echo "==> building relabel at the engine repository's ${sha:0:7}, the commit in the manifests"
+  rm -rf "$out/build/engine.git"
+  git init -q --bare "$out/build/engine.git"
+  git -C "$out/build/engine.git" fetch -q --depth 1 https://github.com/Braveheart-Chess/braveheart "$sha"
+  git -C "$out/build/engine.git" archive "$sha" | tar -x -C "$out/build/src"
+  package=(-p braveheart-tools)
+fi
 (cd "$out/build/src" && RUSTFLAGS="${RUSTFLAGS:--C target-cpu=native}" CARGO_TARGET_DIR="$out/build/target" \
-  cargo build --release --locked --quiet -p braveheart-tools --bin relabel)
+  cargo build --release --locked --quiet ${package[@]+"${package[@]}"} --bin relabel)
 relabel="$out/build/target/release/relabel"
 nodes=${label##*-n}
 built=$("$relabel" --net default --nodes "$nodes" --print-label-id)
 [ "$built" = "$label" ] || { echo "label-set-audit: $sha builds $built, not $label" >&2; exit 1; }
 
 python3 -I "$repo/ci/label-set-audit.py" --data "$out/data" --work "$out/det" --label-id "$label" --engine-sha "$sha" \
+  ${selfplay_sha:+--selfplay-sha "$selfplay_sha"} \
   --relabel "$relabel" --dataset "$root/v1" --json "$out/summary.json" $extra

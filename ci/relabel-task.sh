@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Re-score stored self-play positions with this commit's default net, on a
+# Re-score stored self-play positions with the pinned engine's default net, on a
 # dedicated instance, run by the Relabel workflow through
 # jwall-engineering-infra's remote-task workflow (profile relabel). It starts
 # in the repository root at the workflow's commit, with OUT_DIR set; the labels
@@ -59,12 +59,15 @@ export RUSTFLAGS="${RUSTFLAGS--C target-cpu=$target_cpu}" CARGO_TERM_COLOR=never
 work=$(mktemp -d "${SCRATCH_DIR:-/tmp}/relabel.XXXXXX")
 t0=$(date +%s)
 since() { echo $(( $(date +%s) - t0 )); }
-sha=$(git rev-parse HEAD)
+# This repository's commit makes the label set; the engine (its default net and
+# search) is the one Cargo.lock pins. Every manifest records both.
+selfplay_sha=$(git rev-parse HEAD)
+read -r engine_version engine_sha < <(ci/engine-pin.sh)
 
-cargo build --release --locked --quiet -p braveheart-tools --bin relabel
+cargo build --release --locked --quiet --bin relabel
 label_id=$(target/release/relabel --net default --nodes "$nodes" --print-label-id)
 out_root="$labels/$label_id"
-echo "== relabel: $label_id, generations $generations, task $index of $tasks, $minutes minutes; commit ${sha:0:7} ($(since)s)"
+echo "== relabel: $label_id, generations $generations, task $index of $tasks, $minutes minutes; braveheart-selfplay ${selfplay_sha:0:7}, engine $engine_version (${engine_sha:0:7}) ($(since)s)"
 echo "   from $dataset/, to $out_root/"
 
 aws configure set default.s3.max_concurrent_requests 32
@@ -173,10 +176,10 @@ run_batch() {
   # In the background, in its own session, so a SIGTERM reaches only this
   # script and the trap can stop it and upload what is complete.
   if command -v setsid >/dev/null; then
-    setsid target/release/relabel --in "$work/in" --out "$work/out" --net default --nodes "$nodes" --engine-sha "$sha" \
+    setsid target/release/relabel --in "$work/in" --out "$work/out" --net default --nodes "$nodes" --selfplay-sha "$selfplay_sha" \
       >> "$OUT_DIR/relabel.log" 2>&1 &
   else
-    target/release/relabel --in "$work/in" --out "$work/out" --net default --nodes "$nodes" --engine-sha "$sha" \
+    target/release/relabel --in "$work/in" --out "$work/out" --net default --nodes "$nodes" --selfplay-sha "$selfplay_sha" \
       >> "$OUT_DIR/relabel.log" 2>&1 &
   fi
   child=$!
@@ -220,7 +223,8 @@ trap - TERM
 todo_at_start=$(( $(wc -l < "$work/todo.txt") ))
 cat > "$OUT_DIR/task.json" <<JSON
 {"schema": "rusty-chess-relabel/1", "label_id": "$label_id", "generations": "$generations",
- "index": $index, "tasks": $tasks, "nodes": $nodes, "engine_sha": "$sha", "minutes": $minutes,
+ "index": $index, "tasks": $tasks, "nodes": $nodes, "engine_version": "$engine_version", "engine_sha": "$engine_sha",
+ "selfplay_sha": "$selfplay_sha", "minutes": $minutes,
  "workers": $workers, "shards": $uploaded, "records": $records, "changed": $changed,
  "sum_abs_change": $sum_change, "mates_clamped": $mates, "shards_todo_at_start": $todo_at_start,
  "seconds": $(since), "interrupted": $([ "$stop" = 1 ] && echo true || echo false),
