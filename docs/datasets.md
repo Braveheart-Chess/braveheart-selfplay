@@ -1,11 +1,13 @@
 # Self-play datasets
 
-> **A snapshot until the data move.** Datagen and Relabel still run from the
-> engine repository, and its
+> **The ledger since the data move.** The positions were copied, key for key,
+> to this repository's bucket on 2026-11-16 and audited
+> ([the bucket move](#the-bucket-move)); from then on this page is the ledger,
+> and every run is recorded here. It was refreshed from the engine's
 > [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md)
-> is the ledger until the data moves to this repository's bucket. This copy is
-> engine commit `1a25b13`; record nothing here. It is refreshed from the
-> engine's at the data move.
+> at the move, which had not changed since this copy was taken at engine commit
+> `1a25b13`. Datagen and Relabel run from neither repository until the cutover
+> ([AGENTS.md](../AGENTS.md#until-the-cutover)).
 
 The ledger of every self-play generation, every label set and every run that
 made them. Each net in [nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md) names the generations and labels it
@@ -13,9 +15,10 @@ trained on; this page says what is in them. How the data is made and laid out is
 [datagen.md](datagen.md), and how it is checked in
 [datagen-runbook.md](datagen-runbook.md).
 
-Original data is in `s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=N/run=RUN/`,
+Original data is in `s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=N/run=RUN/`,
 and [other label sets](#label-sets) are under `data/selfplay/relabel/`. Both are
-append-only and kept forever. Every number here comes from the shard manifests
+append-only and kept forever. Records made before 2026-11-16 name the same keys
+in the earlier buckets ([the bucket move](#the-bucket-move)). Every number here comes from the shard manifests
 or from `datagen-audit`, never from the workflow's progress lines.
 
 ## Generations
@@ -619,7 +622,26 @@ billed figure.
 
 ## The bucket move
 
-Until 2026-11-15 this data was in `s3://jwall-engineering-rusty-chess-nnue`,
+On 2026-11-16, when the Braveheart project split, the positions moved again,
+key for key, from `s3://jwall-engineering-braveheart-nnue` to this project's
+`s3://jwall-engineering-braveheart-selfplay-positions`, which is versioned; the
+nets went to braveheart-trainer's `s3://jwall-engineering-braveheart-trainer-nets`
+([nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md#audit-log)).
+A path this page records under either earlier bucket is the same key in the new
+one. The owner ran the copy inside S3 with `aws s3 sync` and admin credentials,
+one prefix to each bucket; the split's plan gives these commands:
+
+```sh
+aws s3 sync s3://jwall-engineering-braveheart-nnue/data/selfplay/ s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/ --only-show-errors
+aws s3 sync s3://jwall-engineering-braveheart-nnue/data/nets/ s3://jwall-engineering-braveheart-trainer-nets/data/nets/ --only-show-errors
+```
+
+The copy's exact invocation, output and times were not recorded. The old bucket
+was not changed and is kept until the owner deletes it. The audit of the copy
+is in the [audit log](#audit-log), under 2026-11-16: every object is in the new
+bucket with the same size and ETag.
+
+The move before it: until 2026-11-15 this data was in `s3://jwall-engineering-rusty-chess-nnue`,
 the bucket of the project's old name. It was copied, key for key, to
 `s3://jwall-engineering-braveheart-nnue`: a path this page or
 [nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md) records under the old bucket is the same key in the new one.
@@ -908,3 +930,33 @@ it, are equal, and the last Datagen, Relabel and Train runs before it were on
 2026-11-09, 2026-11-07 and 2026-11-13. The copied objects start in S3 Standard
 and move to Intelligent-Tiering by the bucket's lifecycle rule; storage class
 was not compared.
+
+**2026-11-16,** the [bucket move](#the-bucket-move) to this project's bucket,
+with `ci/bucket-copy-audit.sh --prefix` at this repository's `2cf7af5`,
+read-only with `AWS_PROFILE=jwall-admin` (the owner's Identity Center admin
+role), from 14:51 to 14:55 UTC:
+
+```sh
+ci/bucket-copy-audit.sh --prefix data/selfplay/ jwall-engineering-braveheart-nnue jwall-engineering-braveheart-selfplay-positions <dir>
+```
+
+| Check | Result |
+|:--|:--|
+| Objects and bytes under `data/selfplay/` in each bucket, from `list-objects-v2` | 572,916 objects and 84,432,364,280 bytes in both |
+| Every source key is in the destination with the same size | All 572,916; none missing, none of another size |
+| Every source key has the same ETag in the destination | All 572,916 |
+| Keys only in the destination | None |
+| What an equal ETag means here | No ETag in either listing is a multipart one, the largest object is 320,178 bytes, and both buckets use SSE-S3 (`AES256`), so every ETag is the MD5 of the object's bytes |
+| Objects under each prefix, against the 2026-11-15 audit | `data/selfplay/v1/`: 384,618 objects, 55,466,430,799 bytes. `data/selfplay/relabel/`: 188,298 objects, 28,965,933,481 bytes. Both exactly as on 2026-11-15 |
+| `head-object` on 4 objects in both buckets, chosen at random (a positions and a games shard under `v1/`, a positions shard and a manifest under `relabel/`): length, ETag, content type, encryption, metadata | Identical for all 4. None carries user metadata |
+
+The same audit of `data/nets/`, with the retired nets' SHA-256s, is in
+braveheart-trainer's
+[nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md#audit-log).
+
+**Not checked:** no object was read back and hashed; the result rests on the
+ETags. No `datagen-audit` and no label-set audit was re-run from the new bucket,
+and no audit verdict changes. The listings compare current versions only.
+Whether anything wrote to the old bucket during the copy was not watched; the
+two listings, taken after it, are equal, and hold exactly the objects the
+2026-11-15 audit counted. Storage class was not compared.
