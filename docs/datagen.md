@@ -104,11 +104,37 @@ first training run.
 }
 ```
 
+A shard made in this repository also carries `"selfplay_sha"` in its
+`provenance`; see [Provenance](#provenance).
+
 `results` counts white wins, draws and black wins. `sha256` is the SHA-256 of
 each record file's *uncompressed* contents, in `files` order; shards written
 before it was added have no `sha256` (gzip's own CRC still catches corruption). In S3 the two data files
 are gzip-compressed and carry a `.gz` suffix; the manifest names them without
 it.
+
+### Provenance
+
+Every shard says which code made it, so it can be rebuilt and its games
+regenerated from their seeds (`datagen-audit determinism`):
+
+| Field | Shards made here | Shards made in the engine repository (to `v0.54.0`) |
+|:--|:--|:--|
+| `selfplay_sha` | This repository's commit, which pins the engine in `Cargo.lock` | absent |
+| `engine_version`, `engine_sha` | The engine release and commit `Cargo.lock` pins (`build.rs` records them) | The engine repository's version and commit, which held datagen too |
+| `engine_bench` | The bench signature of the engine binary at `engine_sha`, built by the task with the engine's own `Cargo.lock` | The same, from the engine built at that commit |
+| `net` | The embedded net that played, from the build itself | The same |
+
+**The commit that made a shard** is its `selfplay_sha`, or, without one, its
+`engine_sha`. A generation comes from one such commit:
+`ci/datagen-manager.py` refuses to add shards made at another, and
+`datagen-audit inventory` reports each engine and commit it finds.
+
+`ci/datagen-task.sh` passes `--selfplay-sha` (its checkout's commit), and its
+`task.json` records `engine_version`, `engine_sha` and `selfplay_sha` too.
+Datagen run by hand without `--selfplay-sha` writes no `selfplay_sha`, so such
+data reads as made in the engine repository: always pass it for data that will
+be kept.
 
 ## Layout in S3
 

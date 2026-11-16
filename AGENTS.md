@@ -19,12 +19,12 @@ This repository makes Braveheart's self-play training data: `datagen` plays the 
 - **The engine pin moves deliberately.** `Cargo.toml` pins `braveheart-core` and `braveheart-search` to one engine release, and every manifest records that engine's version and commit (`build.rs` reads them from `Cargo.lock`). Moving the pin changes who generates the data: it is its own PR, it updates the golden fingerprints, and it says which generation the new engine plays.
 - **Every experiment updates `docs/`.** Data generation, relabelling, audits and one-off measurements all get recorded, including smoke tests and failed, cancelled, interrupted and dropped runs. See [Experiments and the research record](#experiments-and-the-research-record).
 
-## Until the data move
+## Until the cutover
 
-The positions still live in `s3://jwall-engineering-braveheart-nnue`, owned by the engine's project, and Datagen and Relabel still run from [Braveheart-Chess/braveheart](https://github.com/Braveheart-Chess/braveheart).
+The positions are moving, key for key, from `s3://jwall-engineering-braveheart-nnue`, owned by the engine's project, to this project's `s3://jwall-engineering-braveheart-selfplay-positions`. The workflows and `ci/` scripts here are ported to this project, its bucket and the pinned engine. Nothing runs them until the engine gives its dataset up (the cutover).
 
-- **The engine's [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md) is the ledger until then.** The copy here is a snapshot from engine commit `1a25b13`; record nothing in it. It is refreshed from the engine's at the data move.
-- **The workflows and `ci/` scripts here are not ported yet.** They came over with their history and still build `-p braveheart-tools` and record the repository commit as the engine's. They still run as the engine's project (`project: braveheart`), whose task launch role trusts only the engine repository, so they fail before launching anything. Don't run them; porting them is part of the data move.
+- **Don't run Datagen or Relabel here before the cutover.** Until then the engine's bucket is the data's home and the new one a copy being made, so a run in either would be missing from the other.
+- **The engine's [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md) is the ledger until the copy.** The copy here is a snapshot from engine commit `1a25b13`; record nothing in it. It is refreshed from the engine's when the data is copied, and from then on this one is the ledger.
 
 ## Experiments and the research record
 

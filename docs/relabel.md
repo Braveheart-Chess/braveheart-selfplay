@@ -96,6 +96,14 @@ s3://<dataset bucket>/data/selfplay/relabel/<label id>/
     manifests/<shard>.json        the original manifest plus a `relabel` block
 ```
 
+The `relabel` block records the label id, the net and its SHA-256, the budget,
+the pinned engine (`engine_version`, `engine_sha`) and, for a label set made
+in this repository, `selfplay_sha`, the commit that made it. As for shards
+([datagen.md](datagen.md#provenance)), a label set made in the engine
+repository has no `selfplay_sha`, and its `engine_sha` is that commit. A label
+set comes from one commit: `ci/relabel-manager.py` refuses to add to one made
+at another.
+
 - **The label id** names the engine and budget: `<net id>-n<nodes>`, for
   example `net6k4-l050-r41282883885-n5000`. One id is one labelling, forever.
 - **The same partition structure** as `selfplay/v1/gen=N/`, so training on
@@ -118,9 +126,12 @@ original manifests predate checksums.
 - **The tool:** `relabel` in this repository's crate, one worker per core, a shard at
   a time, deterministic for a given net, budget and shard.
 - **Which net:** `--net` takes the embedded (default) net's id, or a
-  retired net's id with `--net-file`, its file from the dataset bucket
-  (`data/nets/<id>/net.nnue`), which must match the SHA-256 in
-  `nnue::RETIRED_NETS`. The binary embeds only the default net
+  retired net's id with `--net-file`, its file from braveheart-trainer's
+  bucket (`s3://jwall-engineering-braveheart-trainer-nets/data/nets/<id>/net.nnue`,
+  which the relabel profile can read), which must match the SHA-256 in
+  `nnue::RETIRED_NETS`. The pinned engine's `nnue::NET_STORE` still names the
+  bucket of its time, `jwall-engineering-braveheart-nnue`; the keys are the
+  same. The binary embeds only the default net
   ([nnue.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/nnue.md#the-embedded-net-and-the-retired-ones)).
 - **In the cloud:** the `Relabel` workflow runs `ci/relabel-task.sh` on up to
   three instances of the `relabel` task profile (`c8a.16xlarge`, spot): it may
@@ -221,14 +232,16 @@ trains on it, listed in
 from S3:
 
 ```sh
-ci/label-set-audit.sh s3://jwall-engineering-braveheart-nnue/data/selfplay \
+ci/label-set-audit.sh s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay \
   net7-l050-r41363264869-n5000 0,1,2 /tmp/n7-audit
 ```
 
 - **Every record** is read from both sides: counts, FENs and results in order,
   checksums, and the manifest's change statistics recomputed from the files.
 - **Provenance** is checked in every manifest, against the commit it names. The
-  tool builds `relabel` from that commit, whatever is checked out.
+  tool builds `relabel` from that commit, whatever is checked out: the label
+  set's `selfplay_sha` in this repository, or, for one made in the engine
+  repository, its `engine_sha` fetched from there.
 - **Determinism:** 6 seeded shards from each run are re-relabelled and compared
   byte for byte. As a negative control, 3 of them at half the nodes must differ.
 - **Plausibility** is reported per generation and run, and fails only on what a

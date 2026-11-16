@@ -15,8 +15,9 @@ audit on 2026-10-30 (run `20261030-41007876197-1`, 72 shards, 18,554 games,
 gh workflow run Datagen --ref main -f instances=1 -f minutes=5 -f note="smoke test"
 # 3. The real run: up to 3 instances, at most 300 minutes each.
 gh workflow run Datagen --ref main -f instances=3 -f minutes=180 -f note="gen N for net N+1"
-# 4. Audit a sample, from a checkout of the data's engine_sha (printed in every manifest).
-ci/datagen-sample.sh s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=N/run=RUN/ /tmp/sample
+# 4. Audit a sample, from a checkout of the commit that made the data (its selfplay_sha,
+#    printed in every manifest; docs/datagen.md, "Provenance").
+ci/datagen-sample.sh s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=N/run=RUN/ /tmp/sample
 cargo run --release -p braveheart-tools --bin datagen-audit -- check /tmp/sample --research 2000 --bullet
 # 5. Train only on a run whose audit says GO, or INVESTIGATE with every warning explained.
 ```
@@ -79,7 +80,7 @@ gh workflow run Datagen --ref main -f instances=1 -f minutes=5 -f upload=false -
 ```sh
 gh run view <run id>                                     # the three Generate jobs
 aws logs tail /jwall-engineering/rusty-chess/tasks --follow --since 5m   # live progress lines
-aws s3 ls s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=0/run=<run>/task=t0/manifests/ | wc -l
+aws s3 ls s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=0/run=<run>/task=t0/manifests/ | wc -l
 aws ec2 describe-instances --filters Name=tag:Purpose,Values=ci-task \
   --query 'Reservations[].Instances[].[Tags[?Key==`TaskId`]|[0].Value,State.Name,InstanceLifecycle]' --output text
 ```
@@ -197,8 +198,8 @@ needs no cloud resources; generation 1 (368M records) took about 5 minutes on
 16 cores.
 
 ```sh
-aws s3 sync s3://jwall-engineering-braveheart-nnue/data/selfplay/v1/gen=N/ /tmp/genN
-git checkout <engine_sha>   # the data's commit, printed in every manifest, for step 4
+aws s3 sync s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=N/ /tmp/genN
+git checkout <selfplay_sha>   # the commit that made the data, printed in every manifest, for step 4
 ci/datagen-full-audit.sh /tmp/genN /tmp/genN-audit
 ```
 
@@ -223,7 +224,10 @@ It runs four steps and stops on any P0 problem:
    failures, bulletformat bytes (= records × 32), results.
 4. **`datagen-audit determinism`:** every worker's first 12 games regenerated
    from its seed, start position and every move, in parallel.
-   - **Build the tool at the data's `engine_sha`.** Identical games then prove
+   - **Build the tool at the commit that made the data:** its `selfplay_sha`
+     here, or, for a generation made in the engine repository (no
+     `selfplay_sha`), its `engine_sha` there, with that commit's
+     `ci/datagen-full-audit.sh`. Identical games then prove
      that engine, its net and the recorded settings played the data.
      It is also how the audit gets an old generation's net: the binary
      embeds only the default net, and a build at the data's commit embeds
@@ -246,7 +250,8 @@ Record the verdict and the numbers in [datasets.md](datasets.md).
    [WORKERS_PER_TASK] [SHARDS_PER_WORKER]`. The default, 8 workers per task
    and 3 shards each, is about 1.8M positions. It is read-only and needs AWS
    credentials that can read the bucket (the owner's profile).
-2. **Check out the data's `engine_sha`** if you will use `--research` or
+2. **Check out the commit that made the data** (its `selfplay_sha`, or its
+   `engine_sha` in the engine repository) if you will use `--research` or
    `determinism`, which search with the engine the audit is built from. The
    replay checks don't depend on the engine version.
 3. **Run** `datagen-audit check DIR --research 2000 --bullet`. It takes about
