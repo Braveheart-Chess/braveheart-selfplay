@@ -31,8 +31,8 @@ data move. Until then:
 - The engine's [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md)
   is the ledger; the copy here is a snapshot.
 - The Datagen and Relabel workflows and the `ci/` scripts are not ported yet.
-  The project file declares no dataset, so both workflows stop at their first
-  step.
+  They still run as the engine's project, whose launch role trusts only the
+  engine repository, so they fail before launching anything.
 
 ## Building
 

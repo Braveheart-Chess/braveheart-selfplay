@@ -24,7 +24,7 @@ This repository makes Braveheart's self-play training data: `datagen` plays the 
 The positions still live in `s3://jwall-engineering-braveheart-nnue`, owned by the engine's project, and Datagen and Relabel still run from [Braveheart-Chess/braveheart](https://github.com/Braveheart-Chess/braveheart).
 
 - **The engine's [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md) is the ledger until then.** The copy here is a snapshot from engine commit `1a25b13`; record nothing in it. It is refreshed from the engine's at the data move.
-- **The workflows and `ci/` scripts here are not ported yet.** They came over with their history and still build `-p braveheart-tools` and record the repository commit as the engine's. `jwall-engineering-sites.yaml` declares no dataset, so both workflows stop at their first step. Don't add a dataset or run them; porting them is part of the data move.
+- **The workflows and `ci/` scripts here are not ported yet.** They came over with their history and still build `-p braveheart-tools` and record the repository commit as the engine's. They still run as the engine's project (`project: braveheart`), whose task launch role trusts only the engine repository, so they fail before launching anything. Don't run them; porting them is part of the data move.
 
 ## Experiments and the research record
 
