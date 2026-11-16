@@ -2,7 +2,7 @@
 
 How to run a `Datagen` job, watch it, survive interruptions, and prove the data
 is fit to train on before a net ever sees it. [datagen.md](datagen.md)
-specifies the formats and the S3 layout; [nnue.md](nnue.md) covers the network
+specifies the formats and the S3 layout; [nnue.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/nnue.md) covers the network
 that trains on the data. The reference numbers below come from generation 0's
 audit on 2026-10-30 (run `20261030-41007876197-1`, 72 shards, 18,554 games,
 1,803,839 records). Compare every new dataset with them.
@@ -382,7 +382,7 @@ Over all records, results follow `1 / (1 + e^(−score/K))` best at **K ≈ 200*
 This is *not* a training setting. The trainer's scale is also the scale the
 engine multiplies the network's output by (`SCALE` = 400), so it stays 400;
 changing it would rescale every evaluation and every pruning margin tuned in
-centipawns ([training.md](training.md)). The gap is part of why the result
+centipawns ([training.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/training.md)). The gap is part of why the result
 weight λ below matters: the results carry the decisiveness the scores
 understate.
 
@@ -404,7 +404,7 @@ understate.
 
 ## Preparing the data for training
 
-`braveheart-trainer prepare` does all of this ([training.md](training.md)):
+`braveheart-trainer prepare` does all of this ([training.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/training.md)):
 
 - **Splits:** whole *workers* (`run/task/worker`) go to training or
   validation by a seeded hash, never individual records. A game never spans

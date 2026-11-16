@@ -4,14 +4,14 @@ The NNUE nets are trained on the engine's own games. Generation 0 is played
 with the hand-written PeSTO evaluation; every later generation is played by the
 engine carrying the previous net, so each net's data comes from a stronger
 player than the last (the decision and its reasons are in
-[roadmap.md](roadmap.md), Phase 6). This page specifies how the data is made,
+[roadmap.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/roadmap.md), Phase 6). This page specifies how the data is made,
 how it is laid out in S3, and what every file contains, so that any
 generation can be found, filtered, re-labelled and trained on years later
 without guessing.
 
 ## How positions are made
 
-`datagen` (in `crates/tools`) runs one worker per core. Each worker:
+`datagen` (in this repository's crate) runs one worker per core. Each worker:
 
 1. plays `random_plies` random legal moves from the start position (or two
    more, at random; always an even number, so both colours make as many
@@ -174,7 +174,7 @@ correctness checks, quality bars and generation 0's reference results.
 Locally, for a pilot:
 
 ```sh
-cargo run --release -p braveheart-tools --bin datagen -- \
+cargo run --release --bin datagen -- \
   --config datagen.toml --out /tmp/datagen --run pilot --task local \
   --threads 8 --max-minutes 1
 ```

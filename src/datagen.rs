@@ -28,7 +28,7 @@ use braveheart_search::nnue::{NETS, Network, network_for_generation};
 use braveheart_search::search::{Limits, Searcher, is_mate_score};
 use serde::{Deserialize, Serialize};
 
-use crate::openings::Rng;
+use crate::rng::Rng;
 
 /// The schema of the records and manifests this module writes.
 pub const SCHEMA: &str = "rusty-chess-selfplay/1";

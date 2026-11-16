@@ -8,15 +8,15 @@ use braveheart_core::types::Color;
 use braveheart_search::board::Board;
 use braveheart_search::nnue::{DEFAULT_NET_GENERATION, NETS, network_by_id};
 use braveheart_search::search::Searcher;
-use braveheart_tools::datagen::{
+use braveheart_selfplay::datagen::{
     Adjudicator, Manifest, Provenance, SCHEMA, Settings, Termination, board_termination,
     insufficient_material, net_provenance, parse_record, play_game, record_line, shard_name,
     write_shard,
 };
-use braveheart_tools::openings::Rng;
+use braveheart_selfplay::rng::Rng;
 
 fn repo_settings() -> Settings {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../datagen.toml");
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/datagen.toml");
     Settings::parse(&std::fs::read_to_string(path).unwrap()).unwrap()
 }
 
@@ -42,8 +42,8 @@ fn the_committed_settings_parse_and_bad_ones_do_not() {
         "the committed settings play with the embedded net"
     );
     assert!(s.nodes >= 1000, "{s:?}");
-    let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../datagen.toml"))
-        .unwrap();
+    let text =
+        std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/datagen.toml")).unwrap();
     assert!(Settings::parse(&text.replace("nodes = 5000", "nodes = 0")).is_err());
     assert!(Settings::parse(&text.replace("max_plies = 400", "max_plies = 4")).is_err());
     assert!(
@@ -326,8 +326,8 @@ fn draw_adjudication_needs_the_ply_threshold_and_consecutive_level_scores() {
 
 #[test]
 fn random_plies_must_be_even_and_openings_start_with_white_to_move() {
-    let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../datagen.toml"))
-        .unwrap();
+    let text =
+        std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/datagen.toml")).unwrap();
     assert!(Settings::parse(&text.replace("random_plies = 8", "random_plies = 7")).is_err());
     let s = quick();
     let mut rng = Rng::seeded(9);

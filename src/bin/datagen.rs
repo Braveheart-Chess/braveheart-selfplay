@@ -16,7 +16,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Duration;
 
-use braveheart_tools::datagen::{Provenance, Run, Settings, net_provenance, run};
+use braveheart_selfplay::datagen::{Provenance, Run, Settings, net_provenance, run};
 
 fn main() -> ExitCode {
     match main_inner(std::env::args().skip(1).collect()) {
@@ -38,7 +38,8 @@ fn main_inner(args: Vec<String>) -> Result<(), String> {
     let mut max_positions = 0u64;
     let mut max_time = None;
     let mut stop_file = None;
-    let mut engine_sha = String::from("unknown");
+    // The pinned engine (build.rs); the task script may pass it explicitly.
+    let mut engine_sha = String::from(env!("BRAVEHEART_ENGINE_SHA"));
     let mut engine_bench = None;
     let mut it = args.into_iter();
     let num = |flag: &str, v: &str| {
@@ -74,7 +75,7 @@ fn main_inner(args: Vec<String>) -> Result<(), String> {
         provenance: Provenance {
             run: run_id.ok_or("`--run` is required")?,
             task: task.ok_or("`--task` is required")?,
-            engine_version: env!("CARGO_PKG_VERSION").to_string(),
+            engine_version: env!("BRAVEHEART_ENGINE_VERSION").to_string(),
             engine_sha,
             engine_bench,
             net,
