@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.0...v0.3.1) (2026-11-16)
+
+
+### Documentation
+
+* describe the positions' consumers as this project's half of the handshake ([#10](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/10)) ([5061843](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/5061843db08650b5a1a2a44993d819207b49308b))
+* open the readme with the organisation banner ([#8](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/8)) ([4ae2db5](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/4ae2db5bf8c54247999e71b93ba1f06a4062b4db))
+
 ## [0.3.0](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.2.0...v0.3.0) (2026-11-16)
 
 
