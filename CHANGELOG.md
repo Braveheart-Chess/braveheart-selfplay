@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.1...v0.3.2) (2026-11-16)
+
+
+### Documentation
+
+* record the copy to this bucket and its audit; datasets.md is the ledger now ([#11](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/11)) ([29ca1b7](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/29ca1b7b551f0c0b86da9eb5a6ad93dc8bb58088))
+
 ## [0.3.1](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.0...v0.3.1) (2026-11-16)
 
 
