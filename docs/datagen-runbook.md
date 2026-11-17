@@ -457,7 +457,7 @@ guessed. `bullet` trains on `target = (1 − λ) · sigmoid(score / 400) + λ ·
 
 | Symptom | Likely cause | Action |
 |:--|:--|:--|
-| Plan job fails: no dataset component | `jwall-engineering-sites.yaml` lacks the `dataset` component | add it (see [datagen.md](datagen.md)) |
+| Plan job fails: no dataset component | `jaws.yaml` lacks the `dataset` component | add it (see [datagen.md](datagen.md)) |
 | Plan job fails: minutes | over 300: the 6-hour runner limit also covers slot waits, boot, build and upload | at most 300 |
 | A Generate job waits, then fails | no task slot: SPRT, Match or other datagen instances fill the 192 vCPUs | wait, or run fewer instances |
 | Interrupted | spot reclamation | start another run; the data is valid |

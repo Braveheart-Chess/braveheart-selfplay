@@ -2,8 +2,8 @@ name: Relabel
 
 # Re-score stored self-play positions with this commit's default net, keeping
 # every original label (docs/relabel.md). Each task runs ci/relabel-task.sh on
-# a dedicated instance through jwall-engineering-infra's remote-task workflow
-# (the `relabel` profile in jwall-engineering-sites.yaml: spot, read selfplay/,
+# a dedicated instance through jaws's remote-task workflow
+# (the `relabel` profile in jaws.yaml: spot, read selfplay/,
 # write selfplay/relabel/). The labels go to
 # selfplay/relabel/<net id>-n<nodes>/gen=N/..., beside and never over the
 # originals.
@@ -80,9 +80,9 @@ jobs:
               [ "$s" -lt "$INSTANCES" ] || { echo "::error::slot $s is not a task of $INSTANCES (they count from 0)"; exit 1; }
             done
           fi
-          bucket=$(yq -r '[.components[] | select(.kind == "dataset")][0].bucket // ""' jwall-engineering-sites.yaml)
-          prefix=$(yq -r '[.components[] | select(.kind == "dataset")][0].prefix // ""' jwall-engineering-sites.yaml)
-          [ -n "$bucket" ] && [ -n "$prefix" ] || { echo "::error::no dataset component in jwall-engineering-sites.yaml"; exit 1; }
+          bucket=$(yq -r '[.components[] | select(.kind == "dataset")][0].bucket // ""' jaws.yaml)
+          prefix=$(yq -r '[.components[] | select(.kind == "dataset")][0].prefix // ""' jaws.yaml)
+          [ -n "$bucket" ] && [ -n "$prefix" ] || { echo "::error::no dataset component in jaws.yaml"; exit 1; }
           root="s3://$bucket/${prefix%/}/selfplay"
           tasks=$(jq -cn --arg d "$root/v1" --arg l "$root/relabel" --arg g "$GENERATIONS" --argjson n "$INSTANCES" --arg m "$MINUTES" --arg nodes "$NODES" --arg s "$SLOTS" \
             '($s | if . == "" then null else split(",") | map(tonumber) end) as $only
@@ -110,7 +110,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.tasks) }}
-    uses: jwallace145/jaws/.github/workflows/remote-task.yml@v0.36.0
+    uses: jwallace145/jaws/.github/workflows/remote-task.yml@v0.50.1
     with:
       project: braveheart-selfplay
       profile: relabel

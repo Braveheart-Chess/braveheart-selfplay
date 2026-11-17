@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Re-score stored self-play positions with the pinned engine's default net, on a
 # dedicated instance, run by the Relabel workflow through
-# jwall-engineering-infra's remote-task workflow (profile relabel). It starts
+# jaws's remote-task workflow (profile relabel). It starts
 # in the repository root at the workflow's commit, with OUT_DIR set; the labels
 # go to S3, and OUT_DIR carries only the task's summary and log.
 # docs/relabel.md is the design.
