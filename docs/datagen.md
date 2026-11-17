@@ -139,7 +139,7 @@ be kept.
 ## Layout in S3
 
 The bucket comes from the `dataset` component of
-`jwall-engineering-sites.yaml`. Keys are partitioned Hive-style, so a training
+`jaws.yaml`. Keys are partitioned Hive-style, so a training
 job (or Athena) can select by prefix:
 
 ```text

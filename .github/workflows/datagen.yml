@@ -1,13 +1,13 @@
 name: Datagen
 
 # Self-play training data for NNUE on dedicated spot instances: each task runs
-# ci/datagen-task.sh on its own c8a.16xlarge through jwall-engineering-infra's
+# ci/datagen-task.sh on its own c8a.16xlarge through jaws's
 # remote-task workflow, generating with the settings in datagen.toml and
 # uploading shards to the dataset bucket as they complete. docs/datagen.md
 # specifies the formats and the S3 layout.
 #
 # The bucket and prefix come from the `dataset` component in
-# jwall-engineering-sites.yaml, so the data's home is infrastructure config,
+# jaws.yaml, so the data's home is infrastructure config,
 # not workflow code. Run it from `main`: the task role trusts only main and
 # pull requests. A spot interruption costs at most each worker's shard in
 # progress; the completed shards are already in S3, and a re-run starts a new
@@ -73,10 +73,10 @@ jobs:
           [[ "$MINUTES" =~ ^[0-9]+$ ]] && [ "$MINUTES" -ge 1 ] && [ "$MINUTES" -le 300 ] \
             || { echo "::error::minutes must be a whole number from 1 to 300 (the task runner's 6-hour limit covers slot waits, boot, build and upload too), got $MINUTES"; exit 1; }
           [ -z "$SEED" ] || [[ "$SEED" =~ ^[0-9]+$ ]] || { echo "::error::seed must be a whole number"; exit 1; }
-          bucket=$(yq -r '[.components[] | select(.kind == "dataset")][0].bucket // ""' jwall-engineering-sites.yaml)
-          prefix=$(yq -r '[.components[] | select(.kind == "dataset")][0].prefix // ""' jwall-engineering-sites.yaml)
+          bucket=$(yq -r '[.components[] | select(.kind == "dataset")][0].bucket // ""' jaws.yaml)
+          prefix=$(yq -r '[.components[] | select(.kind == "dataset")][0].prefix // ""' jaws.yaml)
           if [ -z "$bucket" ] || [ -z "$prefix" ]; then
-            echo "::error::jwall-engineering-sites.yaml has no dataset component with a bucket and prefix; see docs/datagen.md"
+            echo "::error::jaws.yaml has no dataset component with a bucket and prefix; see docs/datagen.md"
             exit 1
           fi
           generation=$(awk -F= '/^generation *=/ {gsub(/[ \t]/, "", $2); print $2; exit}' datagen.toml)
@@ -113,7 +113,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.tasks) }}
-    uses: jwallace145/jaws/.github/workflows/remote-task.yml@v0.36.0
+    uses: jwallace145/jaws/.github/workflows/remote-task.yml@v0.50.1
     with:
       project: braveheart-selfplay
       script: ci/datagen-task.sh

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Self-play training data on a dedicated instance, run by the Datagen workflow
-# through jwall-engineering-infra's remote-task workflow. It starts in the
+# through jaws's remote-task workflow. It starts in the
 # repository root at the workflow's commit, with OUT_DIR set; the data goes to
 # S3, not to OUT_DIR (which carries only the task's summary and upload log).
 # docs/datagen.md specifies the layout and formats.
