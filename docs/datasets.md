@@ -33,8 +33,10 @@ or from `datagen-audit`, never from the workflow's progress lines.
 | 5 | net6k4 (`v0.42.0`) | 318,934,530 | 3,409,848 | 12,755 | 1 | GO: 0 P0 problems, 0 P1 warnings; 2,304/2,304 games regenerated from their seeds |
 | 6 | net7rl012 (`v0.47.1`) | 849,868,621 | 9,662,116 | 34,053 | 5 | GO: 0 P0 problems, 0 P1 warnings; 3,840/3,840 games regenerated from their seeds |
 
-**Generation 7** would be played by the next default net; `datagen.toml` still says
-`generation = 6` and must be bumped before any run.
+**Generation 7** would be played by the pinned engine's default net, net8x160
+(`net8x160-l050-r43390801430`) at `v0.54.0`. `datagen.toml` already says
+`generation = 7`: it was bumped with net8 (engine #235), and net8x160 replaced
+net8 before either played a generation.
 
 What labels each generation has, and which nets trained on them, is under
 [Labels](#labels).

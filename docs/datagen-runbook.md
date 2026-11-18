@@ -16,9 +16,10 @@ gh workflow run Datagen --ref main -f instances=1 -f minutes=5 -f note="smoke te
 # 3. The real run: up to 3 instances, at most 300 minutes each.
 gh workflow run Datagen --ref main -f instances=3 -f minutes=180 -f note="gen N for net N+1"
 # 4. Audit a sample, from a checkout of the commit that made the data (its selfplay_sha,
-#    printed in every manifest; docs/datagen.md, "Provenance").
+#    printed in every manifest; docs/datagen.md, "Provenance"). For data with no
+#    selfplay_sha, check out its engine_sha in the engine repository and add -p braveheart-tools.
 ci/datagen-sample.sh s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=N/run=RUN/ /tmp/sample
-cargo run --release -p braveheart-tools --bin datagen-audit -- check /tmp/sample --research 2000 --bullet
+cargo run --release --bin datagen-audit -- check /tmp/sample --research 2000 --bullet
 # 5. Train only on a run whose audit says GO, or INVESTIGATE with every warning explained.
 ```
 
