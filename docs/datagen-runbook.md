@@ -130,11 +130,18 @@ does that from a laptop: it keeps N instances generating until the generation
 holds a target number of positions, counting the shards in S3 on every poll.
 
 ```sh
-export AWS_PROFILE=prog-strength-admin   # reads S3; dispatches use gh's login
+aws sso login --profile jwall-admin      # the owner's sign-in, good for 12 hours
+export AWS_PROFILE=jwall-admin           # reads S3; dispatches use gh's login
 ci/datagen-manager.py status --generation 6
 ci/datagen-manager.py run --generation 6 --target-positions 600000000 --max-instance-hours 20 --dry-run --once
 screen -S datagen ci/datagen-manager.py run --generation 6 --target-positions 600000000 --max-instance-hours 20 --notify
 ```
+
+The AWS sign-in is the owner's Identity Center session
+([owner access](https://github.com/jwallace145/jaws/blob/main/docs/owner-access.md)),
+which lasts 12 hours. A run that outlasts it gets failed S3 reads until you run
+`aws sso login --profile jwall-admin` again; the manager calls the AWS CLI on
+every poll, so it picks up the new sign-in without a restart.
 
 - **A campaign** is one generation (the one `datagen.toml` names at `main`'s
   commit; the manager refuses another), a target and N instances
