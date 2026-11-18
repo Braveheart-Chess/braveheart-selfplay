@@ -6,8 +6,12 @@
 > and every run is recorded here. It was refreshed from the engine's
 > [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md)
 > at the move, which had not changed since this copy was taken at engine commit
-> `1a25b13`. Datagen and Relabel run from neither repository until the cutover
-> ([AGENTS.md](../AGENTS.md#until-the-cutover)).
+> `1a25b13`. Datagen and Relabel ran from neither repository from the copy until
+> the cutover ([AGENTS.md](../AGENTS.md#until-the-cutover)), when the engine gave
+> its dataset up (engine #277, merged 2026-11-18). The first runs from this
+> repository are that day's proving runs:
+> [generation 7's smoke test](#generation-7-net8x160) and
+> [a relabel of part of generation 6](#net8x160-l050-r43390801430-n5000).
 
 The ledger of every self-play generation, every label set and every run that
 made them. Each net in [nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md) names the generations and labels it
@@ -32,11 +36,14 @@ or from `datagen-audit`, never from the workflow's progress lines.
 | 4 | net 5 (`v0.37.1`) | 495,147,759 | 5,252,191 | 19,838 | 2 | GO: 0 P0 problems, 0 P1 warnings; 3,072/3,072 games regenerated from their seeds |
 | 5 | net6k4 (`v0.42.0`) | 318,934,530 | 3,409,848 | 12,755 | 1 | GO: 0 P0 problems, 0 P1 warnings; 2,304/2,304 games regenerated from their seeds |
 | 6 | net7rl012 (`v0.47.1`) | 849,868,621 | 9,662,116 | 34,053 | 5 | GO: 0 P0 problems, 0 P1 warnings; 3,840/3,840 games regenerated from their seeds |
+| 7 | net8x160 (`v0.54.0`) | 5,905,655 | 66,603 | 256 | 1 | Not run: in progress, only its smoke test so far |
 
-**Generation 7** would be played by the pinned engine's default net, net8x160
-(`net8x160-l050-r43390801430`) at `v0.54.0`. `datagen.toml` already says
+**Generation 7** is played by the pinned engine's default net, net8x160
+(`net8x160-l050-r43390801430`) at `v0.54.0`. `datagen.toml` says
 `generation = 7`: it was bumped with net8 (engine #235), and net8x160 replaced
-net8 before either played a generation.
+net8 before either played a generation. So far it holds only the smoke test of
+2026-11-18 ([Generation 7](#generation-7-net8x160)), and nothing trains on it
+before its full audit.
 
 What labels each generation has, and which nets trained on them, is under
 [Labels](#labels).
@@ -61,6 +68,7 @@ of each.
 | `O` | `original` | The net that played each generation, so a mix (below) | 5,000 | `data/selfplay/v1/gen=N/` | Complete, kept forever |
 | `N7` | `net7-l050-r41363264869-n5000` | net7, sha256 `0866bde1…1b6f`, for every generation | 5,000 | `data/selfplay/relabel/net7-l050-r41363264869-n5000/gen=N/` | Generations 0–2 audited; generations 3–5 not started |
 | `N7r` | `net7rl012-l050-r42054816508-n5000` | net7rl012, sha256 `74af5b46…70ce`, for every generation | 5,000 | `data/selfplay/relabel/net7rl012-l050-r42054816508-n5000/gen=N/` | Generations 3–5 audited; generations 0–2 not started |
+| `N8x` | `net8x160-l050-r43390801430-n5000` | net8x160, sha256 `8ea67605…556c`, for every generation | 5,000 | `data/selfplay/relabel/net8x160-l050-r43390801430-n5000/gen=N/` | Generation 6 in progress (618 of 34,053 shards); generations 0–5 not started |
 
 - **`original`** is the name used here for the labels made during play. Those
   prefixes aren't called that in S3, and `Train`'s `labels` input doesn't take
@@ -70,15 +78,15 @@ of each.
 
 ### Which label sets exist
 
-| Gen | Positions | `O`, labelled by | `N7` | `N7r` |
-|--:|--:|:--|:--|:--|
-| 0 | 231,240,344 | PeSTO | Audited | Not started |
-| 1 | 368,354,466 | net 1 | Audited | Not started |
-| 2 | 307,037,810 | net2x80 | Audited | Not started |
-| 3 | 628,213,254 | net4w512 | Not started | Audited |
-| 4 | 495,147,759 | net 5 | Not started | Audited |
-| 5 | 318,934,530 | net6k4 | Not started | Audited |
-| 6 | 849,868,621 | net7rl012 | Not started | Not started |
+| Gen | Positions | `O`, labelled by | `N7` | `N7r` | `N8x` |
+|--:|--:|:--|:--|:--|:--|
+| 0 | 231,240,344 | PeSTO | Audited | Not started | Not started |
+| 1 | 368,354,466 | net 1 | Audited | Not started | Not started |
+| 2 | 307,037,810 | net2x80 | Audited | Not started | Not started |
+| 3 | 628,213,254 | net4w512 | Not started | Audited | Not started |
+| 4 | 495,147,759 | net 5 | Not started | Audited | Not started |
+| 5 | 318,934,530 | net6k4 | Not started | Audited | Not started |
+| 6 | 849,868,621 | net7rl012 | Not started | Not started | In progress: 618 of 34,053 shards |
 
 | Status | Meaning |
 |:--|:--|
@@ -236,6 +244,43 @@ these generations' labellers, net4w512 to net6k4, are nearer net7rl012 in
 strength than PeSTO to net2x80 were to net7. Each newer generation moves less,
 from 112 cp to 62 cp. Everything still sits above the same-net noise floor (97.7%
 and 0.990).
+
+### `net8x160-l050-r43390801430-n5000`
+
+**Status: generation 6 in progress, 618 of 34,053 shards.** net8x160's scores
+at 5,000 nodes. No campaign asked for this label set: it is what the first
+`Relabel` run from this repository made, a proving run to check that the
+workflow works here after the cutover. The workflow always uses the commit's
+default net, which at `afcfc85` is the pinned `v0.54.0`'s net8x160 (sha256
+`8ea67605…556c`), so the run started a new label set rather than adding to an
+existing one. Design and method: [relabel.md](relabel.md).
+
+| Run | Date | Commit | Slot | Market | Shards | Records | Records/s | Status and notes |
+|:--|:--|:--|--:|:--|--:|--:|--:|:--|
+| [44254774637](https://github.com/Braveheart-Chess/braveheart-selfplay/actions/runs/44254774637) | 2026-11-18 | `afcfc85` (engine `v0.54.0`, `3fd0223`) | 0 of 1 | Spot, $0.7296/h at launch in us-east-1b, after a first pass that found no spot capacity in any of the five zones | 618 | 15,412,763 | 18,327 | **Out of time, resumable.** Dispatched from `main` at 06:54 UTC with `generations=6 instances=1 slots=0 minutes=10`, 5,000 nodes, and the note "proving run after the split's cutover (2026-11-18): first relabel from this repository". Relabelled the first 6 of generation 6's 320 workers, each whole (`w000`–`w005` of run `20261108-42524365295-1`, task t0), in two batches of 305 and 313 shards, then stopped before the seventh at 841 s: `--minutes` is checked between batches. About $0.18, an estimate from the instance's 15 minutes at the launch price |
+
+Shards, records and seconds are from the run's `task.json`. Records/s is for one
+`c8a.16xlarge`, over the task's 841 s, which include the 29 s before the first
+batch. The price is the spot price the job's log printed at launch.
+
+| Gen | Source shards | Source records | Relabelled shards | Relabelled records | Changed | Mean \|change\| (cp) | Mates clamped | Sign agreement | Correlation | Audit |
+|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|:--|
+| 6 | 34,053 | 849,868,621 | 618 | 15,412,763 | 97.48% | 52.5 | 861 | not measured | not measured | Not audited: in progress |
+
+Records, changes and mates are summed from the 618 manifests, which equal
+`task.json`. Sign agreement and correlation need the positions files, which
+weren't read.
+
+- **Not a sample of the generation:** 1.8% of its shards, all from one task of
+  its first run. On those, the mean change is 52.5 cp, against `N7r`'s 61.6 cp on
+  generation 5, and still above the same-net noise floor.
+- **One commit a label set:** these shards were made at `afcfc85`. The relabel
+  manager refuses to add to a label set made at another commit
+  ([relabel.md](relabel.md#the-relabel-manager)), the `ci-task` role trusts only
+  `main` and pull requests, and the id names the net and the nodes but not the
+  commit. So once `main` moves off `afcfc85`, finishing generation 6 under this
+  id needs a decision first. `Train` refuses the label set while it is in
+  progress.
 
 ### Auditing a label set
 
@@ -622,6 +667,38 @@ games-weighted median of the batch medians).
 **Cost:** about $11 on spot (about 12.6 instance-hours), an estimate, not a
 billed figure.
 
+## Generation 7: net8x160
+
+**Settings** (identical in every manifest so far): the same as generations
+1–6. Played by `net8x160-l050-r43390801430` (sha256 `8ea67605…556c`), the
+default net of `v0.54.0` (`3fd0223`), the engine this repository pins, with the
+native build. **The first generation made by this repository:** every manifest
+records its commit, `selfplay_sha` `afcfc85`, beside the engine's.
+
+| Run | Date | Engine | Instance | Market | Shards | Positions | Games | Notes |
+|:--|:--|:--|:--|:--|--:|--:|--:|:--|
+| `20261118-44254770264-1` | 2026-11-18 | `v0.54.0` `3fd0223`, braveheart-selfplay `afcfc85` | 1 × 5; ran all 5 | Spot, $0.7296/h at launch, us-east-1b, after a first pass that found no spot capacity in any of the five zones | 256 | 5,905,655 | 66,603 | **Smoke test**, run [44254770264](https://github.com/Braveheart-Chess/braveheart-selfplay/actions/runs/44254770264), and the first Datagen from this repository, with the note "proving run after the split's cutover (2026-11-18): first datagen from this repository into the positions bucket". Dispatched from `main` at 06:54 UTC and finished normally at 07:02: 5,905,655 positions in 300 s of play, **19,685 positions/s an instance** (positions over the 5 minutes, as the job summary gives it; `task.json`'s 325 s also count 18 s of build and bench). One 5-minute run, so not the generation's rate |
+
+Shards, positions and games are summed from the manifests and equal the run's
+`task.json`. The seed is the run id (the workflow's default). The manifests show
+one settings block, one engine (`0.54.0` `3fd0223`, bench 919,304), one
+`selfplay_sha` and one net, and 64 workers with 64 distinct seeds; each worker's
+fourth and last shard (15,139–19,106 positions) is the one flushed when the 5
+minutes ended. Summed from the same manifests, as a smoke test's numbers and
+not an audit's: results 28.6 / 48.6 / 22.9% (W / D / B), 51.2% of games ended by
+win adjudication, 88.7 records a game.
+
+- **Not run:** the runbook's sample check and the full audit. Nothing trains on
+  generation 7 before its full audit says GO.
+- **One commit a generation:** these shards were made at `afcfc85`, `main` when
+  they ran. The datagen manager refuses to add to a generation whose shards were
+  made at another commit ([datagen-runbook.md](datagen-runbook.md#the-datagen-manager)),
+  and nothing here is deleted, so once `main` moves off `afcfc85`, the rest of
+  generation 7 needs a decision first.
+
+**Cost:** about $0.08 on spot (the instance ran 6 minutes 12 seconds at
+$0.7296/h), an estimate, not a billed figure.
+
 ## The bucket move
 
 On 2026-11-16, when the Braveheart project split, the positions moved again,
@@ -962,3 +1039,28 @@ and no audit verdict changes. The listings compare current versions only.
 Whether anything wrote to the old bucket during the copy was not watched; the
 two listings, taken after it, are equal, and hold exactly the objects the
 2026-11-15 audit counted. Storage class was not compared.
+
+**2026-11-18,** the two proving runs after the cutover
+([generation 7's smoke test](#generation-7-net8x160) and
+[`N8x` on part of generation 6](#net8x160-l050-r43390801430-n5000)), read-only
+with `AWS_PROFILE=jwall-admin`: both new prefixes listed, and every manifest
+under them read, with local scripts that aren't in the repository. The runs'
+`task.json` files are from their artifacts, and times, zones and prices from
+their job logs.
+
+| Check | Result |
+|:--|:--|
+| Objects under `data/selfplay/v1/gen=7/` | 769 objects, 103,769,667 bytes, all under `run=20261118-44254770264-1/task=t0/`: 256 positions files, 256 games files, 256 manifests and the task's `task.json` |
+| Generation 7's manifests against its `task.json` | 256 shards, 5,905,655 positions and 66,603 games in both |
+| Generation 7's provenance | One engine (`0.54.0` `3fd0223`, bench 919,304), one `selfplay_sha` (`afcfc85`), one net (`net8x160-l050-r43390801430`, `8ea67605…556c`) and one settings block, with generation 7; 64 workers, 64 distinct seeds |
+| Objects under `data/selfplay/relabel/net8x160-l050-r43390801430-n5000/` | 1,236 objects, 190,635,049 bytes, all under `gen=6/run=20261108-42524365295-1/task=t0/`: 618 positions files and 618 manifests |
+| The label set's manifests against its `task.json` | 618 shards, 15,412,763 records, 15,024,792 changed, a change sum of 809,774,335 and 861 mates in both |
+| Its provenance, all 618 manifests | Label id, net and SHA-256, 5,000 nodes, engine `3fd0223` and `selfplay_sha` `afcfc85` throughout |
+| Its manifests against their 618 source manifests | Equal records and source positions count, source positions SHA-256, games file SHA-256, games, results, seed and original provenance for all 618 |
+| Which source shards | Workers `w000`–`w005` of run `20261108-42524365295-1` task t0, each whole: 100, 103, 102, 105, 104 and 104 shards, as many as their sources |
+| Generation 6's source shards | 34,053 manifests, as this ledger and the run's `shards_todo_at_start` say |
+
+**Not checked:** no positions or games file was read or hashed; no
+`datagen-audit` sample, label-set audit or determinism re-run; sign agreement and
+correlation of the new labels; the billed cost (the dollar figures are from the
+launch prices and the instances' times in the job logs).
