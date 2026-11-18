@@ -190,7 +190,9 @@ set number of `minutes`, every task with its own seed. Each instance builds
 uploads each shard as it completes, and on a spot interruption stops the
 workers (which finish their games and save their partial shards), uploads
 everything complete and exits. At the committed settings one 64-core instance
-makes about 100 million positions an hour.
+makes about 67–90 million positions an hour, depending on the net: from 18,666
+positions a second with net7rl012 (generation 6) to about 25,150 with net2x80
+(generation 2), as [datasets.md](datasets.md) records.
 
 **[datagen-runbook.md](datagen-runbook.md)** is the procedure for a run: settings
 review, smoke test, monitoring, interruptions, and the audit
