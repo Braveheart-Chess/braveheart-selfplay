@@ -11,7 +11,8 @@
 > its dataset up (engine #277, merged 2026-11-18). The first runs from this
 > repository are that day's proving runs:
 > [generation 7's smoke test](#generation-7-net8x160) and
-> [a relabel of part of generation 6](#net8x160-l050-r43390801430-n5000).
+> [a relabel of part of generation 6](#net8x160-l050-r43390801430-n5000), since
+> deleted.
 
 The ledger of every self-play generation, every label set and every run that
 made them. Each net in [nets.md](https://github.com/Braveheart-Chess/braveheart-trainer/blob/main/docs/nets.md) names the generations and labels it
@@ -36,7 +37,7 @@ or from `datagen-audit`, never from the workflow's progress lines.
 | 4 | net 5 (`v0.37.1`) | 495,147,759 | 5,252,191 | 19,838 | 2 | GO: 0 P0 problems, 0 P1 warnings; 3,072/3,072 games regenerated from their seeds |
 | 5 | net6k4 (`v0.42.0`) | 318,934,530 | 3,409,848 | 12,755 | 1 | GO: 0 P0 problems, 0 P1 warnings; 2,304/2,304 games regenerated from their seeds |
 | 6 | net7rl012 (`v0.47.1`) | 849,868,621 | 9,662,116 | 34,053 | 5 | GO: 0 P0 problems, 0 P1 warnings; 3,840/3,840 games regenerated from their seeds |
-| 7 | net8x160 (`v0.54.0`) | 5,905,655 | 66,603 | 256 | 1 | Not run: in progress, only its smoke test so far |
+| 7 | net8x160 (`v0.54.0`) | 5,905,655 | 66,603 | 256 | 1 | Not run: closed at its smoke test, since `main` moved off `afcfc85`. The next campaign is generation 8 (not started) |
 
 **Generation 7** is played by the pinned engine's default net, net8x160
 (`net8x160-l050-r43390801430`) at `v0.54.0`. `datagen.toml` says
@@ -68,7 +69,7 @@ of each.
 | `O` | `original` | The net that played each generation, so a mix (below) | 5,000 | `data/selfplay/v1/gen=N/` | Complete, kept forever |
 | `N7` | `net7-l050-r41363264869-n5000` | net7, sha256 `0866bde1…1b6f`, for every generation | 5,000 | `data/selfplay/relabel/net7-l050-r41363264869-n5000/gen=N/` | Generations 0–2 audited; generations 3–5 not started |
 | `N7r` | `net7rl012-l050-r42054816508-n5000` | net7rl012, sha256 `74af5b46…70ce`, for every generation | 5,000 | `data/selfplay/relabel/net7rl012-l050-r42054816508-n5000/gen=N/` | Generations 3–5 audited; generations 0–2 not started |
-| `N8x` | `net8x160-l050-r43390801430-n5000` | net8x160, sha256 `8ea67605…556c`, for every generation | 5,000 | `data/selfplay/relabel/net8x160-l050-r43390801430-n5000/gen=N/` | Generation 6 in progress (618 of 34,053 shards); generations 0–5 not started |
+| `N8x` | `net8x160-l050-r43390801430-n5000` | net8x160, sha256 `8ea67605…556c`, for every generation | 5,000 | `data/selfplay/relabel/net8x160-l050-r43390801430-n5000/gen=N/` | Deleted 2026-11-18: a proving run's part of generation 6 (618 of 34,053 shards), removed so the id starts clean |
 
 - **`original`** is the name used here for the labels made during play. Those
   prefixes aren't called that in S3, and `Train`'s `labels` input doesn't take
@@ -86,7 +87,7 @@ of each.
 | 3 | 628,213,254 | net4w512 | Not started | Audited | Not started |
 | 4 | 495,147,759 | net 5 | Not started | Audited | Not started |
 | 5 | 318,934,530 | net6k4 | Not started | Audited | Not started |
-| 6 | 849,868,621 | net7rl012 | Not started | Not started | In progress: 618 of 34,053 shards |
+| 6 | 849,868,621 | net7rl012 | Not started | Not started | Deleted (was 618 of 34,053 shards) |
 
 | Status | Meaning |
 |:--|:--|
@@ -94,6 +95,7 @@ of each.
 | In progress | A run is going, or has stopped with shards missing. `Train` refuses it |
 | Complete | Every source shard has a relabelled shard. `Train` accepts it |
 | Audited | Complete, and the checks in [Auditing a label set](#auditing-a-label-set) are recorded |
+| Deleted | Its objects were deleted. The bucket is versioned, so their versions are kept; the id is free for a new start |
 
 ### Which labels each net trained on
 
@@ -247,7 +249,8 @@ and 0.990).
 
 ### `net8x160-l050-r43390801430-n5000`
 
-**Status: generation 6 in progress, 618 of 34,053 shards.** net8x160's scores
+**Status: deleted 2026-11-18** (it had generation 6's first 618 of 34,053
+shards; see the bullet at the end of this section). net8x160's scores
 at 5,000 nodes. No campaign asked for this label set: it is what the first
 `Relabel` run from this repository made, a proving run to check that the
 workflow works here after the cutover. The workflow always uses the commit's
@@ -281,6 +284,10 @@ weren't read.
   commit. So once `main` moves off `afcfc85`, finishing generation 6 under this
   id needs a decision first. `Train` refuses the label set while it is in
   progress.
+- **Deleted, 2026-11-18:** `main` moved off `afcfc85` the same morning (#18),
+  so this part could never be finished under this id, and it would block every
+  later net8x160 relabel at 5,000 nodes. The owner had its 1,236 objects deleted
+  ([audit log](#audit-log)). The run above stays on the record.
 
 ### Auditing a label set
 
@@ -695,6 +702,9 @@ win adjudication, 88.7 records a game.
   made at another commit ([datagen-runbook.md](datagen-runbook.md#the-datagen-manager)),
   and nothing here is deleted, so once `main` moves off `afcfc85`, the rest of
   generation 7 needs a decision first.
+- **Closed, 2026-11-18:** `main` moved off `afcfc85` the same morning (#18), so
+  generation 7 stays at this smoke test. The owner is holding the next campaign;
+  it starts as generation 8, with a `datagen.toml` bump at the commit it runs from.
 
 **Cost:** about $0.08 on spot (the instance ran 6 minutes 12 seconds at
 $0.7296/h), an estimate, not a billed figure.
@@ -1064,3 +1074,19 @@ their job logs.
 `datagen-audit` sample, label-set audit or determinism re-run; sign agreement and
 correlation of the new labels; the billed cost (the dollar figures are from the
 launch prices and the instances' times in the job logs).
+
+**2026-11-18, `N8x` deleted** (owner's decision), with `AWS_PROFILE=jwall-admin`:
+`aws s3 rm --recursive` on
+`s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/relabel/net8x160-l050-r43390801430-n5000/`.
+The bucket is versioned, so that adds a delete marker to each object and keeps
+every version.
+
+| Check | Result |
+|:--|:--|
+| Before: current objects under the prefix | 1,236 objects, 190,635,049 bytes, all under `gen=6/`, written 07:03–07:10 UTC by run [44254774637](https://github.com/Braveheart-Chess/braveheart-selfplay/actions/runs/44254774637) (the counts in the 2026-11-18 entry above) |
+| After: current objects under the prefix | 0; the prefix no longer lists |
+| After: versions | 1,236 versions kept, 1,236 delete markers. Removing the markers restores the objects |
+| The other label sets | `N7` 72,796 objects (11,251,825,156 bytes) and `N7r` 115,502 (17,714,108,325 bytes): 188,298 together, the relabel total of the 2026-11-15 audit |
+
+**Not checked:** the other label sets' contents (only their listings), and the
+kept versions' bytes.
