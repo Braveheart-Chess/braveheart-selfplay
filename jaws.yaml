@@ -71,5 +71,5 @@ components:
     prefix: data/
     versioning: true
     readers:
-      - arn:aws:iam::650503560686:role/jwall-engineering-braveheart-trainer-task-gpu  # Train
+      - braveheart-trainer/task-gpu  # Train: the trainer's GPU role, in whichever account jaws addresses
     consumers: [braveheart-databricks]  # this project's half of each handshake
