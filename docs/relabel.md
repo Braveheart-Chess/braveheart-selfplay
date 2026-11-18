@@ -178,11 +178,18 @@ slots running until the label set has every shard, and recomputes the work left
 from S3 on every poll, so it never has to keep count while instances run.
 
 ```sh
-export AWS_PROFILE=prog-strength-admin   # reads S3; dispatches use gh's login
+aws sso login --profile jwall-admin      # the owner's sign-in, good for 12 hours
+export AWS_PROFILE=jwall-admin           # reads S3; dispatches use gh's login
 ci/relabel-manager.py status --generations 3,4,5
 ci/relabel-manager.py run --generations 3,4,5 --max-instance-hours 40 --dry-run --once
 screen -S relabel ci/relabel-manager.py run --generations 3,4,5 --max-instance-hours 40 --notify
 ```
+
+The AWS sign-in is the owner's Identity Center session
+([owner access](https://github.com/jwallace145/jaws/blob/main/docs/owner-access.md)),
+which lasts 12 hours. A run that outlasts it gets failed S3 reads until you run
+`aws sso login --profile jwall-admin` again; the manager calls the AWS CLI on
+every poll, so it picks up the new sign-in without a restart.
 
 - **A campaign** is one label set (`main`'s default net at `--nodes`), its
   generations and its number of slots (`--instances`, 3 by default). Its log,
