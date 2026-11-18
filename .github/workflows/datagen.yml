@@ -113,7 +113,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.tasks) }}
-    uses: jwallace145/jaws/.github/workflows/remote-task.yml@v0.50.1
+    uses: jwallace145/jaws/.github/workflows/remote-task.yml@v0.59.0
     with:
       project: braveheart-selfplay
       script: ci/datagen-task.sh
