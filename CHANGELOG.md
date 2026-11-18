@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.3](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.2...v0.3.3) (2026-11-18)
+
+
+### Documentation
+
+* show off the self-play dataset in the readme, and fix three stale doc lines ([#15](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/15)) ([a23b408](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/a23b40898864ace922973e79be0e16f828b56664))
+* sign in with the jwall-admin Identity Center profile for the datagen and relabel managers ([#17](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/17)) ([5c1d512](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/5c1d5126ee3e1c13aeb6e35bbb1d647753f66cd6))
+
 ## [0.3.2](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.1...v0.3.2) (2026-11-16)
 
 
