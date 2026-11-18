@@ -763,6 +763,27 @@ billed figures; the instances ran for less than that.
 `Train` run, under the new project. Their launch templates and grants were
 created with the others; none has launched yet.
 
+### Checking a copy
+
+Two read-only tools check a copy. Both are run, and both results go in the
+[audit log](#audit-log):
+
+- **`ci/bucket-copy-audit.sh`** compares **every** object's key, size and ETag
+  in the two listings. Where an ETag differs, it compares S3's full-object
+  checksum instead. An ETag is the MD5 of the bytes only for an object written
+  in one part to an SSE-S3 or unencrypted bucket. Every object here is
+  written that way.
+- **`ci/bucket-copy-sample.py`** does not trust S3's metadata. It downloads a
+  sample from both buckets and compares SHA-256s. The sample is one random
+  object from every directory (every task's positions, games and manifests in
+  every run and label set) plus a random 0.5% on top, or every object with
+  `--all`. It writes each sampled key's size and both hashes to `sample.json`.
+
+```sh
+ci/bucket-copy-audit.sh --prefix data/selfplay/ SOURCE DESTINATION <dir>
+ci/bucket-copy-sample.py --prefix data/selfplay/ SOURCE DESTINATION <dir>
+```
+
 ## Adding a run, a generation or a label set
 
 After every Datagen or Relabel run, including smoke tests, benchmarks and
