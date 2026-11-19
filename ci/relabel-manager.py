@@ -38,7 +38,7 @@ import time
 REPO = 'Braveheart-Chess/braveheart-selfplay'
 # The engine this repository pins (Cargo.lock), whose nnue.rs names the default net.
 ENGINE_REPO = 'Braveheart-Chess/braveheart'
-DATASET = 's3://jwall-engineering-braveheart-selfplay-positions/data/selfplay'
+DATASET = 's3://jaws-braveheart-selfplay-positions/data/selfplay'
 TITLE = re.compile(r'^Relabel: gen ([0-9,]+), (\d+) × (\d+) min, (\d+) nodes(?:, slots ([0-9,]+))?')
 INTERRUPTED = re.compile(r'warning: interrupted by spot reclamation')
 NO_CAPACITY = re.compile(r'error: no (?:spot |on-demand )?\S* ?capacity|no-capacity')

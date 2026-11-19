@@ -67,7 +67,10 @@ components:
   # https://github.com/jwallace145/jaws/blob/main/docs/datasets.md
   - kind: dataset
     name: positions
-    bucket: jwall-engineering-braveheart-selfplay-positions  # <Organization>-<project>-<name>
+    # In the production account since 2026-11-19 (docs/datasets.md, "The bucket
+    # move"); the management account's jwall-engineering-braveheart-selfplay-positions
+    # is kept, unchanged, until the owner deletes it.
+    bucket: jaws-braveheart-selfplay-positions  # <Organization>-<project>-<name>
     prefix: data/
     versioning: true
     readers:

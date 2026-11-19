@@ -21,7 +21,7 @@ This repository makes Braveheart's self-play training data: `datagen` plays the 
 
 ## Until the cutover
 
-The positions were copied, key for key, from `s3://jwall-engineering-braveheart-nnue`, owned by the engine's project, to this project's `s3://jwall-engineering-braveheart-selfplay-positions` on 2026-11-16, and audited ([docs/datasets.md](docs/datasets.md#the-bucket-move)). The workflows and `ci/` scripts here are ported to this project, its bucket and the pinned engine. Nothing runs them until the engine gives its dataset up (the cutover).
+The positions were copied, key for key, from `s3://jwall-engineering-braveheart-nnue`, owned by the engine's project, to this project's `s3://jwall-engineering-braveheart-selfplay-positions` on 2026-11-16, and audited ([docs/datasets.md](docs/datasets.md#the-bucket-move)). The workflows and `ci/` scripts here are ported to this project, its bucket and the pinned engine. Nothing runs them until the engine gives its dataset up (the cutover). On 2026-11-19 the positions moved again, to the production account's `s3://jaws-braveheart-selfplay-positions`, and the workflows have written only there since ([docs/datasets.md](docs/datasets.md#the-bucket-move)). Sign in with the `jaws-prod` profile to read it.
 
 - **Don't run Datagen or Relabel here before the cutover.** Until then the engine's workflows still point at its bucket, so a run in either place would be missing from the other.
 - **[docs/datasets.md](docs/datasets.md) is the ledger since the copy (2026-11-16).** Record every run in it. The engine's [docs/datasets.md](https://github.com/Braveheart-Chess/braveheart/blob/main/docs/datasets.md) was the ledger until then, and this one was refreshed from it at the copy.
