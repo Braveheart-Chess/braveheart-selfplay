@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.5.0...v0.5.1) (2026-11-19)
+
+
+### Documentation
+
+* record the production Datagen smoke tests before and after the Spot service-linked role ([#27](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/27)) ([cb76e38](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/cb76e38a88a27244a876f64b35993dfd3d9a73d6))
+
 ## [0.5.0](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.4.0...v0.5.0) (2026-11-19)
 
 
