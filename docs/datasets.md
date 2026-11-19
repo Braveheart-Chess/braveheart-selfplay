@@ -731,6 +731,25 @@ quota in production is approved. Its readers resolve to each account's own
 roles, so until the trainer moves it reads the management account's bucket,
 which holds every generation up to the cutover but nothing written after it.
 
+Two Datagen smoke tests from `main` at `v0.5.0` (`5bb1cfb`) checked the
+production task runner on 2026-11-19, each one `c8a.16xlarge` task of 5 minutes
+with upload off:
+
+| Run | Instance | Result |
+|:--|:--|:--|
+| `Datagen` [44546406893](https://github.com/Braveheart-Chess/braveheart-selfplay/actions/runs/44546406893), 14:41 UTC | none | Failed at launch: `AuthFailure.ServiceLinkedRoleCreationNotPermitted`. The production account had no EC2 Spot service-linked role, and the task launch role may not create one. The error is not a capacity error, so the on-demand fallback did not run |
+| `Datagen` [44622087967](https://github.com/Braveheart-Chess/braveheart-selfplay/actions/runs/44622087967), 21:46 UTC | on-demand `c8a.16xlarge` `i-0854d4859569f4947`, us-east-1a | Passed: 65,382 games, 5,793,585 positions, 256 shards in 324 s (about 19,300 positions a second). Spot was refused for capacity (`InsufficientInstanceCapacity`) in all five zones for the profile's 5 minutes, 61 times, placement score 1, and the task fell back to on demand |
+
+Between the two, jaws took the role into its foundation, which creates it in
+every account that runs a task runner (jwallace145/jaws#248 and #250, released
+as v0.65.0 and v0.66.0). The second run's refusals are capacity errors, so the
+role is in place. **Not yet seen in production:** a spot instance actually
+launching; that waits on spot capacity for `c8a.16xlarge`.
+
+**Cost:** about $0.38, an estimate from the instance's 6 min 33 s between
+launch and termination at $3.4486 an hour, not a billed figure. The failed run
+launched nothing.
+
 The owner's production admin role made the copy inside S3, with AWS CLI
 2.34.59. It reads the management account's bucket through that bucket's policy,
 which grants it read and list only. The copy was `aws s3 sync --only-show-errors` on each of 39
