@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.3...v0.4.0) (2026-11-19)
+
+
+### Features
+
+* **ci:** check a bucket copy byte for byte on a stratified sample ([#22](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/22)) ([9daa440](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/9daa4402fb5faf504cb4331305d8b58f26011900))
+
+
+### Bug Fixes
+
+* **ci:** build relabel from whichever crate holds it at the label set's engine commit ([#23](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/23)) ([74b5a38](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/74b5a38eb1894dcd65f7821a399a693d1e68e11a))
+
+
+### Documentation
+
+* record deleting the partial N8x label set and closing generation 7 at its smoke test ([#20](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/20)) ([c03f555](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/c03f5552e47477e87c16e4a36594b9bbeb852214))
+* record the copy of the positions to the production account and its audit ([#24](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/24)) ([4a93755](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/4a937556050196d51dfb4c8e36b7169a8259cd7c))
+* record the first Datagen and Relabel runs from this repository, after the cutover ([#18](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/18)) ([14e7c7f](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/14e7c7fa3e6d11b017807f603cb9e4bd86bef6ad))
+
 ## [0.3.3](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.2...v0.3.3) (2026-11-18)
 
 
