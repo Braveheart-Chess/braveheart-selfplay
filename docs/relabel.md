@@ -178,8 +178,8 @@ slots running until the label set has every shard, and recomputes the work left
 from S3 on every poll, so it never has to keep count while instances run.
 
 ```sh
-aws sso login --profile jwall-admin      # the owner's sign-in, good for 12 hours
-export AWS_PROFILE=jwall-admin           # reads S3; dispatches use gh's login
+aws sso login --profile jaws-prod        # the owner's sign-in, good for 12 hours
+export AWS_PROFILE=jaws-prod             # reads S3; dispatches use gh's login
 ci/relabel-manager.py status --generations 3,4,5
 ci/relabel-manager.py run --generations 3,4,5 --max-instance-hours 40 --dry-run --once
 screen -S relabel ci/relabel-manager.py run --generations 3,4,5 --max-instance-hours 40 --notify
@@ -188,7 +188,7 @@ screen -S relabel ci/relabel-manager.py run --generations 3,4,5 --max-instance-h
 The AWS sign-in is the owner's Identity Center session
 ([owner access](https://github.com/jwallace145/jaws/blob/main/docs/owner-access.md)),
 which lasts 12 hours. A run that outlasts it gets failed S3 reads until you run
-`aws sso login --profile jwall-admin` again; the manager calls the AWS CLI on
+`aws sso login --profile jaws-prod` again; the manager calls the AWS CLI on
 every poll, so it picks up the new sign-in without a restart.
 
 - **A campaign** is one label set (`main`'s default net at `--nodes`), its
@@ -239,7 +239,7 @@ trains on it, listed in
 from S3:
 
 ```sh
-ci/label-set-audit.sh s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay \
+ci/label-set-audit.sh s3://jaws-braveheart-selfplay-positions/data/selfplay \
   net7-l050-r41363264869-n5000 0,1,2 /tmp/n7-audit
 ```
 

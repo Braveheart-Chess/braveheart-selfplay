@@ -20,10 +20,11 @@ trained on; this page says what is in them. How the data is made and laid out is
 [datagen.md](datagen.md), and how it is checked in
 [datagen-runbook.md](datagen-runbook.md).
 
-Original data is in `s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=N/run=RUN/`,
-and [other label sets](#label-sets) are under `data/selfplay/relabel/`. Both are
-append-only and kept forever. Records made before 2026-11-16 name the same keys
-in the earlier buckets ([the bucket move](#the-bucket-move)). Every number here comes from the shard manifests
+Original data is in `s3://jaws-braveheart-selfplay-positions/data/selfplay/v1/gen=N/run=RUN/`,
+in the production account, and [other label sets](#label-sets) are under
+`data/selfplay/relabel/`. Both are append-only and kept forever. Records made
+before 2026-11-19 name the same keys in the earlier buckets
+([the bucket move](#the-bucket-move)). Every number here comes from the shard manifests
 or from `datagen-audit`, never from the workflow's progress lines.
 
 ## Generations
@@ -711,25 +712,36 @@ $0.7296/h), an estimate, not a billed figure.
 
 ## The bucket move
 
-On 2026-11-19 the positions were copied once more, key for key, into the
-production account that jaws is moving every project to:
-`s3://jaws-braveheart-selfplay-positions`, versioned like this bucket. **The
-workflows have not moved.** Datagen and Relabel still write to
-`s3://jwall-engineering-braveheart-selfplay-positions`, the bucket every path on
-this page names, until the cutover. A final `sync` and a full re-audit come
-then, and this page will record them.
+On 2026-11-19 the positions were copied once more, key for key, from the
+management account's `s3://jwall-engineering-braveheart-selfplay-positions` into
+the production account that jaws is moving every project to:
+`s3://jaws-braveheart-selfplay-positions`, versioned like the original. **The
+workflows moved the same day** (the cutover): Datagen and Relabel run in the
+production account from then on, and write only to the production bucket.
+Paths this page recorded before the cutover name the management account's
+bucket; the keys are the same in both.
+
+Nothing was written to either bucket between the copy and the cutover, so the
+final `sync` the plan called for had nothing to copy and was not run. A
+re-audit just before the cutover found both buckets identical, key, size and
+ETag ([audit log](#audit-log), the second 2026-11-19 entry).
+
+braveheart-trainer's GPU tasks stay in the management account until its G and VT
+quota in production is approved. Its readers resolve to each account's own
+roles, so until the trainer moves it reads the management account's bucket,
+which holds every generation up to the cutover but nothing written after it.
 
 The owner's production admin role made the copy inside S3, with AWS CLI
-2.34.59. It reads this bucket through the bucket policy, which grants it read
-and list only. The copy was `aws s3 sync --only-show-errors` on each of 39
+2.34.59. It reads the management account's bucket through that bucket's policy,
+which grants it read and list only. The copy was `aws s3 sync --only-show-errors` on each of 39
 prefixes (every task of every run, and every run of every label set), 8 at a
 time with 32 requests each, then once over `data/` for anything beside them. A
 trial copy of generation 7 alone came first and was audited before the rest. The
 full copy ran from 00:46:19 to 00:59:22 UTC and printed no error.
 
 Only current versions were copied: the versions and delete markers of the
-deleted `N8x` label set stay in this bucket alone. This bucket was not changed
-and is kept. The audit is in the [audit log](#audit-log), under 2026-11-19.
+deleted `N8x` label set stay in the management account's bucket alone. That
+bucket was not changed and is kept. The audit is in the [audit log](#audit-log), under 2026-11-19.
 
 On 2026-11-16, when the Braveheart project split, the positions moved again,
 key for key, from `s3://jwall-engineering-braveheart-nnue` to this project's
@@ -1169,3 +1181,31 @@ set, not every generation. Noncurrent versions were not copied, so nothing of
 the copy's. No task has run in the production account, so its task roles'
 grants on the new bucket are unexercised. The copy's script and the audit's
 wrapper are local scripts that aren't in this repository.
+
+**2026-11-19,** the re-audit before the cutover
+([the bucket move](#the-bucket-move)). Read-only, with `AWS_PROFILE=jaws-prod`
+(the production admin role, which reads the management account's bucket through
+its policy) and AWS CLI 2.34.59, using `ci/bucket-copy-audit.sh` at `261bcb4`. The
+listings were taken at 14:29:36 UTC (management) and 14:31:25 UTC (production).
+At the time, no task instance was running in either account, and no Datagen or
+Relabel run had started in this repository since the two proving runs of
+2026-11-18 (06:54 UTC).
+
+```sh
+ci/bucket-copy-audit.sh --prefix data/ jwall-engineering-braveheart-selfplay-positions jaws-braveheart-selfplay-positions <dir>
+```
+
+| Check | Result |
+|:--|:--|
+| Objects and bytes under `data/` in each bucket | 573,685 objects and 84,536,133,947 bytes in both: the same totals as this morning's audit of the copy |
+| Every source key is in the destination with the same size and ETag | All 573,685; none missing, none of another size, none with another ETag |
+| Keys only in the destination | None |
+| The two `list-objects-v2` listings (key, size, ETag), byte for byte | Identical: SHA-256 `3a3a82b9f4cd420e6e0f531e6a1779562e99897b8519d2108f2f0a5852c63d1a` for both |
+
+So the final `sync` had nothing to copy and was not run. Equal ETags mean equal
+bytes here, for the reasons the copy's audit gives (single-part uploads, SSE-S3).
+
+**Not checked:** no object was downloaded or hashed again, and the domain
+audits were not repeated; they stand from the audit of the copy, since every
+object is unchanged. Versions were not compared. The production task roles'
+grants are still unexercised until the first run after the cutover.

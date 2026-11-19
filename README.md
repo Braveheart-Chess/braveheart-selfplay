@@ -162,7 +162,7 @@ shard was made. Positions are kept only when they're quiet: not in check, a
 best move that isn't a capture or promotion, and no mate score.
 
 ```text
-s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/
+s3://jaws-braveheart-selfplay-positions/data/selfplay/
   v1/gen=N/run=R/task=T/          the originals, Hive-partitioned
     positions/  games/  manifests/  task.json
   relabel/<label set id>/gen=N/   other label sets, the same layout

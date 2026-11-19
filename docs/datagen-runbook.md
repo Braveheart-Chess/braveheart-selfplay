@@ -18,7 +18,7 @@ gh workflow run Datagen --ref main -f instances=3 -f minutes=180 -f note="gen N 
 # 4. Audit a sample, from a checkout of the commit that made the data (its selfplay_sha,
 #    printed in every manifest; docs/datagen.md, "Provenance"). For data with no
 #    selfplay_sha, check out its engine_sha in the engine repository and add -p braveheart-tools.
-ci/datagen-sample.sh s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=N/run=RUN/ /tmp/sample
+ci/datagen-sample.sh s3://jaws-braveheart-selfplay-positions/data/selfplay/v1/gen=N/run=RUN/ /tmp/sample
 cargo run --release --bin datagen-audit -- check /tmp/sample --research 2000 --bullet
 # 5. Train only on a run whose audit says GO, or INVESTIGATE with every warning explained.
 ```
@@ -80,8 +80,8 @@ gh workflow run Datagen --ref main -f instances=1 -f minutes=5 -f upload=false -
 
 ```sh
 gh run view <run id>                                     # the three Generate jobs
-aws logs tail /jwall-engineering/rusty-chess/tasks --follow --since 5m   # live progress lines
-aws s3 ls s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=0/run=<run>/task=t0/manifests/ | wc -l
+aws logs tail /jaws/braveheart-selfplay/tasks --follow --since 5m   # live progress lines
+aws s3 ls s3://jaws-braveheart-selfplay-positions/data/selfplay/v1/gen=0/run=<run>/task=t0/manifests/ | wc -l
 aws ec2 describe-instances --filters Name=tag:Purpose,Values=ci-task \
   --query 'Reservations[].Instances[].[Tags[?Key==`TaskId`]|[0].Value,State.Name,InstanceLifecycle]' --output text
 ```
@@ -130,8 +130,8 @@ does that from a laptop: it keeps N instances generating until the generation
 holds a target number of positions, counting the shards in S3 on every poll.
 
 ```sh
-aws sso login --profile jwall-admin      # the owner's sign-in, good for 12 hours
-export AWS_PROFILE=jwall-admin           # reads S3; dispatches use gh's login
+aws sso login --profile jaws-prod        # the owner's sign-in, good for 12 hours
+export AWS_PROFILE=jaws-prod             # reads S3; dispatches use gh's login
 ci/datagen-manager.py status --generation 6
 ci/datagen-manager.py run --generation 6 --target-positions 600000000 --max-instance-hours 20 --dry-run --once
 screen -S datagen ci/datagen-manager.py run --generation 6 --target-positions 600000000 --max-instance-hours 20 --notify
@@ -140,7 +140,7 @@ screen -S datagen ci/datagen-manager.py run --generation 6 --target-positions 60
 The AWS sign-in is the owner's Identity Center session
 ([owner access](https://github.com/jwallace145/jaws/blob/main/docs/owner-access.md)),
 which lasts 12 hours. A run that outlasts it gets failed S3 reads until you run
-`aws sso login --profile jwall-admin` again; the manager calls the AWS CLI on
+`aws sso login --profile jaws-prod` again; the manager calls the AWS CLI on
 every poll, so it picks up the new sign-in without a restart.
 
 - **A campaign** is one generation (the one `datagen.toml` names at `main`'s
@@ -206,7 +206,7 @@ needs no cloud resources; generation 1 (368M records) took about 5 minutes on
 16 cores.
 
 ```sh
-aws s3 sync s3://jwall-engineering-braveheart-selfplay-positions/data/selfplay/v1/gen=N/ /tmp/genN
+aws s3 sync s3://jaws-braveheart-selfplay-positions/data/selfplay/v1/gen=N/ /tmp/genN
 git checkout <selfplay_sha>   # the commit that made the data, printed in every manifest, for step 4
 ci/datagen-full-audit.sh /tmp/genN /tmp/genN-audit
 ```
