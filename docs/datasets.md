@@ -711,6 +711,26 @@ $0.7296/h), an estimate, not a billed figure.
 
 ## The bucket move
 
+On 2026-11-19 the positions were copied once more, key for key, into the
+production account that jaws is moving every project to:
+`s3://jaws-braveheart-selfplay-positions`, versioned like this bucket. **The
+workflows have not moved.** Datagen and Relabel still write to
+`s3://jwall-engineering-braveheart-selfplay-positions`, the bucket every path on
+this page names, until the cutover. A final `sync` and a full re-audit come
+then, and this page will record them.
+
+The owner's production admin role made the copy inside S3, with AWS CLI
+2.34.59. It reads this bucket through the bucket policy, which grants it read
+and list only. The copy was `aws s3 sync --only-show-errors` on each of 39
+prefixes (every task of every run, and every run of every label set), 8 at a
+time with 32 requests each, then once over `data/` for anything beside them. A
+trial copy of generation 7 alone came first and was audited before the rest. The
+full copy ran from 00:46:19 to 00:59:22 UTC and printed no error.
+
+Only current versions were copied: the versions and delete markers of the
+deleted `N8x` label set stay in this bucket alone. This bucket was not changed
+and is kept. The audit is in the [audit log](#audit-log), under 2026-11-19.
+
 On 2026-11-16, when the Braveheart project split, the positions moved again,
 key for key, from `s3://jwall-engineering-braveheart-nnue` to this project's
 `s3://jwall-engineering-braveheart-selfplay-positions`, which is versioned; the
@@ -1111,3 +1131,41 @@ every version.
 
 **Not checked:** the other label sets' contents (only their listings), and the
 kept versions' bytes.
+
+**2026-11-19,** the copy to the production account's bucket
+([the bucket move](#the-bucket-move)). Read-only: the production admin role for
+both buckets' objects, and `AWS_PROFILE=jwall-admin` for this bucket's version
+history. The tools are `ci/bucket-copy-audit.sh`, `ci/bucket-copy-sample.py`
+(#22), `ci/datagen-full-audit.sh`, and `ci/label-set-audit.sh` with #23's fix.
+A baseline listing of this bucket was taken on 2026-11-18 at 23:30 UTC, before
+anything was copied.
+
+```sh
+ci/bucket-copy-audit.sh --prefix data/ jwall-engineering-braveheart-selfplay-positions jaws-braveheart-selfplay-positions <dir>
+ci/bucket-copy-sample.py --prefix data/ jwall-engineering-braveheart-selfplay-positions jaws-braveheart-selfplay-positions <dir>
+```
+
+| Check | Result |
+|:--|:--|
+| The trial copy of generation 7, before the rest | 769 objects: all with the same size and ETag, and all 769 with the same SHA-256 when downloaded from both buckets |
+| Objects and bytes under `data/` in each bucket, from `list-objects-v2` | 573,685 objects and 84,536,133,947 bytes in both, and in the baseline: the 2026-11-16 audit's 572,916 and 84,432,364,280 plus generation 7's 769 and 103,769,667 |
+| Every source key is in the destination with the same size and ETag | All 573,685; none missing, none of another size |
+| Keys only in the destination | None |
+| What an equal ETag means here | No ETag in either listing is a multipart one, the largest object is 320,178 bytes, and both buckets use SSE-S3 (`AES256`), so every ETag is the MD5 of the object's bytes |
+| Versions in the destination | 573,685, one for each object; no delete markers |
+| SHA-256 of objects downloaded from both buckets: one at random from each of the 141 directories, plus 0.5% of all objects at random (seed 20261118) | 3,009 objects, 444,179,505 bytes from each bucket: all identical |
+| `head-object` on 25 of generation 7's objects in both buckets: length, ETag, content type, encoding, encryption, metadata | Identical for all 25. None carries user metadata. Storage class Standard in both |
+| `ci/datagen-full-audit.sh` at `afcfc85` on generation 7, downloaded from the destination | GO: 256 shards, 66,603 games, 5,905,655 records, 0 failures; the first 12 games of all 64 workers regenerated identically |
+| The engine repository's `ci/datagen-full-audit.sh` at `863241e` on generation 6's run `20261108-42536885510-1`, downloaded from the destination | GO: 640 shards, 171,021 games, 15,023,775 records, 0 failures; the first 12 games of all 64 workers regenerated identically |
+| `ci/label-set-audit.sh` on generation 0 of `net7-l050-r41363264869-n5000`, read from the destination | PASS: 9,329 shards, 231,240,344 records checked against their sources, 0 failures; 18 of 18 positions files byte-identical across 3 re-labellings; all 3 half-nodes controls differ |
+| `ci/label-set-audit.sh` on generation 5 of `net7rl012-l050-r42054816508-n5000`, read from the destination | PASS: 12,755 shards, 318,934,530 records, 0 failures; 6 of 6 positions files byte-identical; all 3 half-nodes controls differ |
+| This bucket against the baseline, after the copy | The same 573,685 keys, each with the same size, ETag and last-modified time; the same 1,236 noncurrent versions and 1,236 delete markers; versioning and encryption unchanged |
+
+**Not checked:** objects were read back and hashed for the sample and for
+generation 7, not all 573,685; the rest rests on the ETags. The domain audits
+read generation 7, one run of generation 6 and one generation of each label
+set, not every generation. Noncurrent versions were not copied, so nothing of
+`N8x` is in the new bucket. An object's last-modified time in the new bucket is
+the copy's. No task has run in the production account, so its task roles'
+grants on the new bucket are unexercised. The copy's script and the audit's
+wrapper are local scripts that aren't in this repository.
