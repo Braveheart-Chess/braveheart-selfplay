@@ -59,7 +59,15 @@ else
   git init -q --bare "$out/build/engine.git"
   git -C "$out/build/engine.git" fetch -q --depth 1 https://github.com/Braveheart-Chess/braveheart "$sha"
   git -C "$out/build/engine.git" archive "$sha" | tar -x -C "$out/build/src"
-  package=(-p braveheart-tools)
+  # The crate that holds relabel was renamed with the project (rusty-chess-tools
+  # until 2026-11-15), so ask the checkout which package has the binary.
+  owner=$(cd "$out/build/src" && cargo metadata --no-deps --format-version 1 --locked | python3 -I -c '
+import json, sys
+names = [p["name"] for p in json.load(sys.stdin)["packages"]
+         for t in p["targets"] if t["name"] == "relabel" and "bin" in t["kind"]]
+print(names[0] if len(names) == 1 else "")')
+  [ -n "$owner" ] || { echo "label-set-audit: the engine at ${sha:0:7} has no single package with a relabel binary" >&2; exit 1; }
+  package=(-p "$owner")
 fi
 (cd "$out/build/src" && RUSTFLAGS="${RUSTFLAGS:--C target-cpu=native}" CARGO_TARGET_DIR="$out/build/target" \
   cargo build --release --locked --quiet ${package[@]+"${package[@]}"} --bin relabel)
