@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.4.0...v0.5.0) (2026-11-19)
+
+
+### Features
+
+* move Datagen and Relabel to the production account's positions bucket ([#25](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/25)) ([d873589](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/d873589539cb00df73ed6b2d76ebf1ce3586f2bf))
+
 ## [0.4.0](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.3.3...v0.4.0) (2026-11-19)
 
 
