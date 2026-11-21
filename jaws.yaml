@@ -68,8 +68,7 @@ components:
   - kind: dataset
     name: positions
     # In the production account since 2026-11-19 (docs/datasets.md, "The bucket
-    # move"); the management account's jwall-engineering-braveheart-selfplay-positions
-    # is kept, unchanged, until the owner deletes it.
+    # move"). The management account's copy was deleted on 2026-11-21.
     bucket: jaws-braveheart-selfplay-positions  # <Organization>-<project>-<name>
     prefix: data/
     versioning: true
