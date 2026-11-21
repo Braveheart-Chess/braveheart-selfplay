@@ -741,7 +741,7 @@ with upload off:
 | `Datagen` [44622087967](https://github.com/Braveheart-Chess/braveheart-selfplay/actions/runs/44622087967), 21:46 UTC | on-demand `c8a.16xlarge` `i-0854d4859569f4947`, us-east-1a | Passed: 65,382 games, 5,793,585 positions, 256 shards in 324 s (about 19,300 positions a second). Spot was refused for capacity (`InsufficientInstanceCapacity`) in all five zones for the profile's 5 minutes, 61 times, placement score 1, and the task fell back to on demand |
 
 Between the two, jaws took the role into its foundation, which creates it in
-every account that runs a task runner (jwallace145/jaws#248 and #250, released
+every account that runs a task runner (Jaws-Platform/jaws#248 and #250, released
 as v0.65.0 and v0.66.0). The second run's refusals are capacity errors, so the
 role is in place. **Not yet seen in production:** a spot instance actually
 launching; that waits on spot capacity for `c8a.16xlarge`.
