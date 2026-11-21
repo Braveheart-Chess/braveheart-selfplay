@@ -11,7 +11,7 @@ repository: Braveheart-Chess/braveheart-selfplay
 # The tags every resource carries (through the provider's default_tags).
 # Project, Repository and Environment=prod are cross-checked.
 tags:
-  Organization: jwall-engineering
+  Organization: jaws
   Project: braveheart-selfplay
   Environment: prod
   Repository: Braveheart-Chess/braveheart-selfplay
