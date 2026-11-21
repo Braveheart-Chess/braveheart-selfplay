@@ -138,7 +138,7 @@ screen -S datagen ci/datagen-manager.py run --generation 6 --target-positions 60
 ```
 
 The AWS sign-in is the owner's Identity Center session
-([owner access](https://github.com/jwallace145/jaws/blob/main/docs/owner-access.md)),
+([owner access](https://github.com/Jaws-Platform/jaws/blob/main/docs/owner-access.md)),
 which lasts 12 hours. A run that outlasts it gets failed S3 reads until you run
 `aws sso login --profile jaws-prod` again; the manager calls the AWS CLI on
 every poll, so it picks up the new sign-in without a restart.
