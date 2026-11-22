@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.5.1...v0.5.2) (2026-11-22)
+
+
+### Bug Fixes
+
+* **repo:** let dependabot's capitalised bump titles pass ([#36](https://github.com/Braveheart-Chess/braveheart-selfplay/issues/36)) ([33b0b78](https://github.com/Braveheart-Chess/braveheart-selfplay/commit/33b0b78afcb7d9aad167d05acafb4093bf957112))
+
 ## [0.5.1](https://github.com/Braveheart-Chess/braveheart-selfplay/compare/v0.5.0...v0.5.1) (2026-11-19)
 
 
