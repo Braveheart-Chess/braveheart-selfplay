@@ -1,26 +1,40 @@
 <!--
-Pick the template that matches the PR type. Open this PR again with one of:
+Title: one Conventional Commit header with one of this repository's scopes,
+for example `feat(datagen): …`. It becomes the squash commit
+on main, so write the line you want to read in `git log`.
 
-  https://github.com/Braveheart-Chess/braveheart-selfplay/compare/main...<branch>?template=feat.md
-  https://github.com/Braveheart-Chess/braveheart-selfplay/compare/main...<branch>?template=fix.md
-  https://github.com/Braveheart-Chess/braveheart-selfplay/compare/main...<branch>?template=perf.md
-  https://github.com/Braveheart-Chess/braveheart-selfplay/compare/main...<branch>?template=docs.md
-  https://github.com/Braveheart-Chess/braveheart-selfplay/compare/main...<branch>?template=chore.md
-  https://github.com/Braveheart-Chess/braveheart-selfplay/compare/main...<branch>?template=refactor.md
-  https://github.com/Braveheart-Chess/braveheart-selfplay/compare/main...<branch>?template=ci.md
-
-or, from the command line:
-
-  gh pr create --template feat.md
-  gh pr create --template fix.md
-  gh pr create --template perf.md
-  gh pr create --template docs.md
-  gh pr create --template chore.md
-  gh pr create --template refactor.md
-  gh pr create --template ci.md
-
-The PR title must be a valid Conventional Commit; squash merges use it as the
-commit message. See CONTRIBUTING.md.
+Fill in every section. Write "n/a" rather than deleting one.
 -->
 
-Please use a typed template: `feat.md`, `perf.md`, `fix.md`, `docs.md`, `chore.md`, `refactor.md`, or `ci.md` (links above).
+## Summary
+
+<!-- What this pull request does, in one or two sentences. -->
+
+## Why
+
+<!-- The problem or the motivation. For a fix: the bug, its root cause, and how to reproduce it. -->
+
+Closes #
+
+## Changes
+
+-
+
+## Verification
+
+<!-- The commands you ran and what they showed, screenshots, or "CI only". -->
+
+## Data
+
+<!-- tests/golden.rs pins what datagen makes from fixed seeds. Pick one. For a perf change, also give the same command's speed before and after on the same machine. -->
+
+- [ ] The data is unchanged: `tests/golden.rs` passes untouched.
+- [ ] The data changes on purpose: the fingerprints are updated, the reason is
+      under Why, and docs/datasets.md says from which run or generation it applies.
+
+## Checklist
+
+- [ ] The title is a Conventional Commit with one of this repository's scopes
+- [ ] Every commit is one line, with only `Co-authored-by` trailers after it
+- [ ] A breaking change is marked with `!` and explained under Why
+- [ ] Docs are updated where behavior changed

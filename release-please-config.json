@@ -6,6 +6,7 @@
   "bump-patch-for-minor-pre-major": false,
   "include-component-in-tag": false,
   "include-v-in-tag": true,
+  "pull-request-title-pattern": "chore(release): release${component} ${version}",
   "bootstrap-sha": "31b5c6f846610141411f753005f4583380cf00c1",
   "changelog-sections": [
     {
