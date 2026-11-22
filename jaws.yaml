@@ -9,9 +9,9 @@ project: braveheart-selfplay
 repository: Braveheart-Chess/braveheart-selfplay
 
 # The tags every resource carries (through the provider's default_tags).
-# Project, Repository and Environment=prod are cross-checked.
+# Project, Repository and Environment=prod are cross-checked; jaws adds
+# Organization (this repository's GitHub owner) and ManagedBy itself.
 tags:
-  Organization: jaws
   Project: braveheart-selfplay
   Environment: prod
   Repository: Braveheart-Chess/braveheart-selfplay
@@ -69,7 +69,7 @@ components:
     name: positions
     # In the production account since 2026-11-19 (docs/datasets.md, "The bucket
     # move"). The management account's copy was deleted on 2026-11-21.
-    bucket: jaws-braveheart-selfplay-positions  # <Organization>-<project>-<name>
+    bucket: jaws-braveheart-selfplay-positions  # <name_root>-<project>-<name>
     prefix: data/
     versioning: true
     readers:
