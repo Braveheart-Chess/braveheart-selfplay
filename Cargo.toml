@@ -2,7 +2,7 @@
 # this version (and Cargo.lock's) with every release.
 [package]
 name = "braveheart-selfplay"
-version = "0.5.1"
+version = "0.5.2"
 description = "Braveheart's self-play data: datagen, relabel and the datagen audit"
 edition = "2024"
 rust-version = "1.85"
